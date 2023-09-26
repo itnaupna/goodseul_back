@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication
 @ComponentScan(basePackages = "data")
+@ComponentScan(basePackages = "jwt")
+@ComponentScan(basePackages = "social")
 @EnableJpaRepositories(basePackages = "data.repository")
 @EntityScan(basePackages = "data.entity")
 public class GoodseulApplication {

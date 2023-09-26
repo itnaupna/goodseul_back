@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<div onclick="handleNaverApi()">네이버 로그인</div>
+<script type="text/javascript">
+
+    // 네이버 로그인 버튼 클릭 이벤트 핸들러
+    const NAVER_CLIENT_ID=`PBeOU8cGP2GxjPHfqD9Z`;
+    const NAVER_REDIRECT_URI=`http://localhost:8080/callback.html`;
+    const NAVER_AUTH_URI=`https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${NAVER_CLIENT_ID}&redirect_uri=${NAVER_REDIRECT_URI}&state=test`;
+
+    const handleNaverApi=() => {
+        window.location.href = NAVER_AUTH_URI;
+    }
+</script>
+</body>
+</html>

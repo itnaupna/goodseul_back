@@ -33,6 +33,13 @@ public class PointController {
 
     }
 
+    // 총 포인트
+    @GetMapping("/totalPoint")
+    public int getTotalPoint (@RequestParam int member_idx) {
+        return pointService.getTotalPoint(member_idx);
+    }
+
+
     // 적립
     @PostMapping("/point")
     public ResponseEntity<String> addPoint (@RequestBody PointDto dto) {

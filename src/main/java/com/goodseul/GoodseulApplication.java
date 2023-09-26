@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 
 @SpringBootApplication
 @ComponentScan(basePackages = "data")
+@ComponentScan(basePackages = "jwt")
+@ComponentScan(basePackages = "social")
 @EnableJpaRepositories(basePackages = "data.repository")
 @EntityScan(basePackages = "data.entity")
 @EnableCaching

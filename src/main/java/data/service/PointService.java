@@ -45,6 +45,10 @@ public class PointService {
         return response;
     }
 
+    public int getTotalPoint (int member_idx) {
+        return  pointHistoryRepository.findTotalPointsByMemberName(member_idx);
+    }
+
 
     // 포인트 적립 (A)
     @Transactional

@@ -15,4 +15,5 @@ public class RankResponseDto {
     private int rank;
     private double score;
     private long date;
+
 }

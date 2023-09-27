@@ -24,14 +24,14 @@ public class FileController {
         this.storageService = storageService;
     }
 
-    @PostMapping("/upload")
+    @PostMapping
     public ResponseEntity<Response> uploadImage(@RequestParam("file") MultipartFile file,
-                                                @RequestParam("userName") String userName) throws IOException {
+                                                @RequestParam("path") String path) throws IOException {
 
         Response res = new Response();
         try{
-            String result = storageService.saveFile(file,userName);
-            res.setImageLocation("/"+userName+"/"+result);
+            String result = storageService.saveFile(file,path);
+            res.setImageLocation("/" + path + "/" +result);
             res.setMessage("done");
             res.setSuccess(true);
             return new ResponseEntity<Response>(res, HttpStatus.OK);
@@ -42,17 +42,17 @@ public class FileController {
         }
     }
 
-    @PostMapping("/post/upload")
+    @PostMapping("/multiple")
     public ResponseEntity<Response> postImageUpload (@RequestParam("files") MultipartFile[] files,
-                                                     @RequestParam("postName") String postName) {
+                                                     @RequestParam("path") String path) {
         Response res = new Response();
         List<String> results = new ArrayList<>();
         List<String> imageLocations = new ArrayList<>();
 
         try {
-            results = storageService.saveFiles(files,postName);
+            results = storageService.saveFiles(files,path);
             for(String result : results) {
-                imageLocations.add("/" + postName + "/" + result);
+                imageLocations.add("/" + path + "/" + result);
             }
             res.setImageLocations(imageLocations);
             res.setMessage("done");

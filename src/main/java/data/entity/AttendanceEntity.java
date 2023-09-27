@@ -15,6 +15,7 @@ public class AttendanceEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int AttendanceIdx;
 
+    @OneToOne(targetEntity = UserEntity.class)
     private int userIdx;
 
     private Timestamp lastAttendance;

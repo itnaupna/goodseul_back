@@ -50,7 +50,6 @@ public class PointService {
     }
 
 
-
     // 포인트 적립 (A)
     @Transactional
     public void addPointEvent(PointDto dto) {

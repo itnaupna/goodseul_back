@@ -32,6 +32,8 @@ public class GoodseulEntity{
     private SocialType socialType;
     private String socialId;
     private String refreshToken;
+    private Integer is_premium;
+    private String goodseulProfile;
 
     public void authorizeUser() {
         this.role = Role.GOODSEUL;

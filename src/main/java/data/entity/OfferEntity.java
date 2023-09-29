@@ -20,7 +20,7 @@ public class OfferEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int offerIdx;
 
-    @ManyToOne(cascade = CascadeType.REMOVE)
+    @ManyToOne
     @JoinColumn(name = "userIdx", referencedColumnName = "idx")
     UserEntity user;
 

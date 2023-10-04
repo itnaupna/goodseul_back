@@ -11,7 +11,7 @@ import java.util.Optional;
 
 @Repository
 public interface ReviewRepository extends JpaRepository <ReviewEntity, Integer> {
-    Page<ReviewEntity> findByGIdx_GoodseulNameContainingAndUIdx_NameContaining(String goodseulName, String name, Pageable pageable);
+    Page<ReviewEntity> findByGoodseulEntity_GoodseulNameContainingOrUserEntity_NameContaining(String goodseul, String name, Pageable pageable);
 }
 
 

@@ -36,11 +36,11 @@ public class ReviewEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "g_idx", referencedColumnName = "idx", nullable = false)
-    private GoodseulEntity gIdx;
+    private GoodseulEntity goodseulEntity;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "u_idx", referencedColumnName = "idx", nullable = false)
-    private UserEntity uIdx;
+    private UserEntity userEntity;
 
     @CreationTimestamp
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
@@ -48,15 +48,15 @@ public class ReviewEntity {
     private Timestamp rCreateDate;
 
     public static ReviewEntity toReviewEntity(ReviewDto dto, GoodseulEntity goodseul, UserEntity user) {
-        int scaledStar = dto.getStar() * 10;
+        int scaledStar = dto.getStar() * 2;
         return ReviewEntity.builder()
                 .rIdx(dto.getR_idx())
                 .rSubject(dto.getR_subject())
                 .rContent(dto.getR_content())
                 .star(scaledStar)
                 .rType(dto.getR_type())
-                .gIdx(goodseul)
-                .uIdx(user)
+                .goodseulEntity(goodseul)
+                .userEntity(user)
                 .rCreateDate(dto.getR_create_date())
                 .build();
     }

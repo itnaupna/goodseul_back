@@ -30,7 +30,6 @@ public class ReviewController {
             @RequestParam(defaultValue = "DESC") String sortDirection,
             @RequestParam(required = false) String keyword) {
         return new ResponseEntity<>(reviewService.getPageReview(page, size, sortProperty, sortDirection, keyword), HttpStatus.OK);
-
     }
 
     @PostMapping("/lv0/review")

@@ -22,10 +22,11 @@ public class ReviewResponseDto {
     private String skill;
     private Integer isPremium;
 
-    // 유저 정보
-    private  Long uidx;
-    private  String uName;
 
+
+    // 유저 정보
+    private  Long uIdx;
+    private  String uName;
 
     public ReviewResponseDto(ReviewEntity review) {
         this.rIdx = review.getRIdx();
@@ -35,14 +36,14 @@ public class ReviewResponseDto {
         this.rType = review.getRType();
         this.rCreateDate = review.getRCreateDate();
 
-        GoodseulEntity goodseul = review.getGIdx();
+        GoodseulEntity goodseul = review.getGoodseulEntity();
         this.gIdx = goodseul.getIdx();
         this.goodseulName = goodseul.getGoodseulName();
         this.skill = goodseul.getSkill();
         this.isPremium = goodseul.getIsPremium();
 
-        UserEntity user = review.getUIdx();
-        this.uidx = user.getIdx();
+        UserEntity user = review.getUserEntity();
+        this.uIdx = user.getIdx();
         this.uName = user.getName();
 
     }

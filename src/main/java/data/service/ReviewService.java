@@ -42,9 +42,10 @@ public class ReviewService {
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortProperty));
         Page<ReviewEntity> result;
 
-
         if (keyword != null && !keyword.trim().isEmpty()) {
-            result = reviewRepository.findByGIdx_GoodseulNameContainingAndUIdx_NameContaining(keyword, keyword, pageable);
+            result = reviewRepository.findByGoodseulEntity_GoodseulNameContainingOrUserEntity_NameContaining(keyword, keyword, pageable);
+            log.info("Goodseul Name: " + keyword + ", Username: " + keyword);
+            log.info("Pageable: " + pageable.toString());
         } else {
             result = reviewRepository.findAll(pageable);
         }

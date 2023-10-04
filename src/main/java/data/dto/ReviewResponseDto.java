@@ -39,7 +39,7 @@ public class ReviewResponseDto {
         this.gIdx = goodseul.getIdx();
         this.goodseulName = goodseul.getGoodseulName();
         this.skill = goodseul.getSkill();
-        this.isPremium = goodseul.getIs_premium();
+        this.isPremium = goodseul.getIsPremium();
 
         UserEntity user = review.getUIdx();
         this.uidx = user.getIdx();

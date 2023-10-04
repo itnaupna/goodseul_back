@@ -44,6 +44,7 @@ public class JwtService {
     private static final String ACCESS_TOKEN_SUBJECT = "AccessToken";
     private static final String REFRESH_TOKEN_SUBJECT = "RefreshToken";
     private static final String EMAIL_CLAIM = "email";
+    private static final String IDX_CLAIM = "idx";
     private static final String BEARER = "Bearer ";
 
     private final UserRepository userRepository;
@@ -59,6 +60,7 @@ public class JwtService {
                 //추가적으로 식별자나, 이름 등의 정보를 더 추가해도됨
                 //추가할 경우 .withClaim(클래임 이름, 클래임 값)으로 설정해주면 됨
                 .withClaim(EMAIL_CLAIM, email)
+                .withClaim(IDX_CLAIM,userRepository.findByEmail(email).get().getIdx())
                 .sign(Algorithm.HMAC512(secretKey)); //HMAC512 알고리즘 사용, application-yml에서 지정한 secret 키로 암호화
     }
     //RefreshToken 생성
@@ -121,6 +123,19 @@ public class JwtService {
                     .asString()); // 클레임 값을 문자열로 변환한 후, 이 값을 'Optional'객체로 감싸서 반환
         }catch (Exception e) {
             log.error("액세스 토큰이 유효하지 않습니다");
+            return Optional.empty();
+        }
+    }
+
+    public Optional<Long> extractIdx(String accessToken) {
+        try {
+            return Optional.ofNullable(JWT.require(Algorithm.HMAC512(secretKey))
+                    .build()
+                    .verify(accessToken)
+                    .getClaim(IDX_CLAIM)
+                    .asLong());
+        } catch (Exception e){
+            log.error("액세스 토큰이 유효하지않습니다.");
             return Optional.empty();
         }
     }

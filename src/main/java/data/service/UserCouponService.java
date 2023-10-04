@@ -16,16 +16,12 @@ import java.util.Random;
 @Service
 @Slf4j
 public class UserCouponService {
+   private final UserCouponRepository userCouponRepository;
+   private final CouponRepository couponRepository;
 
-    private final Logger logger = LoggerFactory.getLogger(CouponService.class);
-
-    @Autowired
-    UserCouponRepository userCouponRepository;
-    @Autowired
-    CouponRepository couponRepository;
-
-    public UserCouponService(UserCouponRepository userCouponRepository) {
+    public UserCouponService(UserCouponRepository userCouponRepository, CouponRepository couponRepository) {
         this.userCouponRepository = userCouponRepository;
+        this.couponRepository = couponRepository;
     }
 
     //랜덤 쿠폰 번호 생성 (대문자+숫자 16자리)

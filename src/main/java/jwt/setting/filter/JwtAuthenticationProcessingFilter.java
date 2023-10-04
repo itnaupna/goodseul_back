@@ -37,7 +37,7 @@ import java.util.UUID;
 @RequiredArgsConstructor // 생성자 자동으로 생성해줌
 @Slf4j //log 사용 어노테이션
 @CrossOrigin(origins = "*")
-public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
+public class    JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
     private static final String[] NO_CHECK_URL = {"/login","/api/lv0/naver"}; // "/login"으로 들어오는 요청은 Filter 작동 x
     private final JwtService jwtService;
     private final UserRepository userRepository;

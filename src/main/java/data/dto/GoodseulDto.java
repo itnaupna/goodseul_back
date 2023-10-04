@@ -18,4 +18,5 @@ public class GoodseulDto {
     private String career;
     private String isPremium;
     private String premiumDate;
+    private String goodseulProfile;
 }

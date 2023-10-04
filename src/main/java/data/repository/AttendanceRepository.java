@@ -9,5 +9,5 @@ import java.util.Optional;
 @Repository
 public interface AttendanceRepository extends JpaRepository<AttendanceEntity, Integer> {
 
-    Optional<AttendanceEntity> findAttendanceEntityByUserIdx(int userIdx);
+    Optional<AttendanceEntity> findAttendanceEntityByUserIdx(long userIdx);
 }

@@ -30,6 +30,7 @@ public class OfferController {
         return new ResponseEntity<>(offerService.setOffer(dto), HttpStatus.OK);
     }
 
+    // 페이징 처리 요구. ( 5개 )
     @GetMapping("/my")
     private ResponseEntity<List<OfferDto>> getList(HttpServletRequest request) {
         return new ResponseEntity<>(offerService.getMyOfferList(request),HttpStatus.OK);

@@ -2,10 +2,15 @@ package data.service;
 
 import data.dto.AttendanceResponseDto;
 import data.entity.AttendanceEntity;
+import data.entity.UserEntity;
 import data.repository.AttendanceRepository;
+import data.repository.UserRepository;
+import jwt.setting.settings.JwtService;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletRequest;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.*;
@@ -16,13 +21,17 @@ import java.util.*;
 public class AttendanceService {
 
     private final AttendanceRepository attendanceRepository;
+    private final JwtService jwtService;
+    private final UserRepository userRepository;
 
-    public AttendanceService(AttendanceRepository attendanceRepository) {
+    public AttendanceService(AttendanceRepository attendanceRepository, JwtService jwtService, UserRepository userRepository) {
         this.attendanceRepository = attendanceRepository;
+        this.jwtService = jwtService;
+        this.userRepository = userRepository;
     }
 
-    public boolean checkAttendance(int userIdx) {
-        AttendanceEntity attendanceEntity = getAttendanceEntity(userIdx);
+    public boolean checkAttendance(HttpServletRequest request) {
+        AttendanceEntity attendanceEntity = getAttendanceEntity(request);
 
         if(attendanceEntity.getLastAttendance() == null) {
             return false;
@@ -31,12 +40,12 @@ public class AttendanceService {
         }
     }
 
-    public AttendanceResponseDto returnData(int userIdx) {
+    public AttendanceResponseDto returnData(HttpServletRequest request) {
         AttendanceResponseDto attendanceResponseDto = new AttendanceResponseDto();
 
-        attendanceResponseDto.setAttend(checkAttendance(userIdx));
+        attendanceResponseDto.setAttend(checkAttendance(request));
 
-        AttendanceEntity attendanceEntity = getAttendanceEntity(userIdx);
+        AttendanceEntity attendanceEntity = getAttendanceEntity(request);
 
         StringTokenizer st = new StringTokenizer(attendanceEntity.getAttendanceData());
 
@@ -60,8 +69,24 @@ public class AttendanceService {
 
     }
 
-    public int attend(int position, int userIdx) {
-        AttendanceEntity attendanceEntity = getAttendanceEntity(userIdx);
+    @NotNull
+    private AttendanceEntity getAttendanceEntity(HttpServletRequest request) {
+        long userIdx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
+        Optional<UserEntity> user = userRepository.findByIdx(userIdx);
+
+        AttendanceEntity attendanceEntity = new AttendanceEntity();
+
+        if(user.isPresent()){
+            log.info("User data 조회 성공");
+            attendanceEntity = getAttendanceEntity(user.get());
+        } else {
+            log.error("User data 존재하지않음.");
+        }
+        return attendanceEntity;
+    }
+
+    public int attend(int position, HttpServletRequest request) {
+        AttendanceEntity attendanceEntity = getAttendanceEntity(request);
         StringTokenizer st = new StringTokenizer(attendanceEntity.getAttendanceData());
         int[] countPoint = {5,2,1,1,1};
 
@@ -113,15 +138,15 @@ public class AttendanceService {
         return returnedPoint;
     }
 
-    private AttendanceEntity getAttendanceEntity(int userIdx) {
-        Optional<AttendanceEntity> attendanceEntityOptional = attendanceRepository.findAttendanceEntityByUserIdx(userIdx);
+    private AttendanceEntity getAttendanceEntity(UserEntity user) {
+        Optional<AttendanceEntity> attendanceEntityOptional = attendanceRepository.findAttendanceEntityByUserIdx(user.getIdx());
 
         AttendanceEntity attendanceEntity = new AttendanceEntity();
         if (attendanceEntityOptional.isPresent()) {
             attendanceEntity = attendanceEntityOptional.get();
         } else {
             log.info("해당 회원의 출석체크 기록없음.");
-            attendanceEntity.setUserIdx(userIdx);
+            attendanceEntity.setUser(user);
             attendanceEntity.setAttendanceData("0 0 0 0 0 0 0 0 0 0");
             attendanceRepository.save(attendanceEntity);
             log.info("새로운 출석체크 기록 저장 완료.");

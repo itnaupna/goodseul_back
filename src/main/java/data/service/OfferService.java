@@ -73,7 +73,7 @@ public class OfferService {
 
     public List<OfferDto> getWeekOfferList(HttpServletRequest request,int page) {
         long idx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
-        PageRequest pageRequest = PageRequest.of(page,3, Sort.by("write_date").ascending());
+        PageRequest pageRequest = PageRequest.of(page,10, Sort.by("write_date").ascending());
         Page<OfferEntity> list = offerRepository.findPostsWrittenInTheLastWeek(pageRequest);
         List<OfferDto> dtoList = new LinkedList<>();
 

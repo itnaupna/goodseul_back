@@ -113,7 +113,7 @@ public class NaverController {
             String NaveraccessToken = jwtService.createAccessToken(email);
             String NaverRefreshToken = jwtService.createRefreshToken();
             HttpHeaders responseHeaders = new HttpHeaders();
-            responseHeaders.add("Authorization", "Bearer" + NaveraccessToken);
+            responseHeaders.add("Authorization", "Bearer " + NaveraccessToken);
             responseHeaders.add("Authorization-Refresh", NaverRefreshToken);
             returnUser.setRefreshToken(NaverRefreshToken);
             userRepository.save(returnUser);

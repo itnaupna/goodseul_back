@@ -7,15 +7,21 @@
 <body>
 
 <div onclick="handleNaverApi()">네이버 로그인</div>
+<div onclick="handleKakaoApi()">카카오 로그인</div>
 <script type="text/javascript">
 
     // 네이버 로그인 버튼 클릭 이벤트 핸들러
     const NAVER_CLIENT_ID=`PBeOU8cGP2GxjPHfqD9Z`;
     const NAVER_REDIRECT_URI=`http://localhost:8080/callback.html`;
     const NAVER_AUTH_URI=`https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${NAVER_CLIENT_ID}&redirect_uri=${NAVER_REDIRECT_URI}&state=test`;
-
+    const KAKAO_CLIENT_ID=`06d065716d99d2f36c80edf10c918ff7`;
+    const KAKAO_REDIRECT_URI=`http://localhost:8080/callback2.html`;
+    const KAKAO_AUTH_URI=`https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${KAKAO_CLIENT_ID}&redirect_uri=${KAKAO_REDIRECT_URI}&response_type=code`;
     const handleNaverApi=() => {
         window.location.href = NAVER_AUTH_URI;
+    }
+    const handleKakaoApi=() =>{
+        window.location.href = KAKAO_AUTH_URI;
     }
 </script>
 </body>

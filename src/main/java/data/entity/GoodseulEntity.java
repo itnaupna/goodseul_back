@@ -24,6 +24,8 @@ public class GoodseulEntity{
     private String goodseulName;
     private String skill;
     private String career;
+    private String isPremium;
+    private String premiumDate;
 
     @Enumerated(EnumType.STRING)
     private Role role;

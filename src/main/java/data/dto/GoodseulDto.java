@@ -16,5 +16,7 @@ public class GoodseulDto {
     private String location;
     private String skill;
     private String career;
+    private String isPremium;
+    private String premiumDate;
     private String goodseulProfile;
 }

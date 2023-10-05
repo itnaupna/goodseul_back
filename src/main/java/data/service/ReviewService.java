@@ -92,6 +92,32 @@ public class ReviewService {
                 .collect(Collectors.toList());
     }
 
+//    public List<ReviewResponseDto> findRandomPremiumReviews () {
+//        Pageable topFiveRandom = PageRequest.of(0, 5);
+//        List<Object[]> reults = reviewRepository.findRandomPremiumReviews(topFiveRandom);
+//        return reults.stream()
+//                .map(reult -> new ReviewResponseDto((ReviewEntity) reult[0], ((Long) reult[1]).intValue()))
+//                .collect(Collectors.toList());
+//
+//    }
+
+    public List<ReviewResponseDto> findRandomPremiumReviews () {
+        Pageable topFiveRandom = PageRequest.of(0, 5);
+        List<Object[]> reults = reviewRepository.findRandomPremiumReviews(topFiveRandom);
+        return reults.stream()
+                .map(result -> {
+                    ReviewEntity reviewEntity = (ReviewEntity) result[0];
+                    Integer likeCount = ((Long) result[1]).intValue();
+
+                    ReviewResponseDto responseDto = new ReviewResponseDto(reviewEntity, likeCount);
+
+                    String randSubject = reviewRepository.findRandomReviewSubjectsByGIdx(reviewEntity.getGoodseulEntity().getIdx());
+                    responseDto.setRandSubject(randSubject);
+
+                    return responseDto;
+                })
+                .collect(Collectors.toList());
+    }
 
 
 }

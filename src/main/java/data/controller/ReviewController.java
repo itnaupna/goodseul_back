@@ -46,4 +46,9 @@ public class ReviewController {
         return new ResponseEntity<>(reviewService.findTopReviews(), HttpStatus.OK);
     }
 
+    @GetMapping("/lv0/review/premium")
+    public ResponseEntity<List<ReviewResponseDto>> findRandomPremiumReviews() {
+        return new ResponseEntity<>(reviewService.findRandomPremiumReviews(), HttpStatus.OK);
+    }
+
 }

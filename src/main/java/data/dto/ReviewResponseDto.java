@@ -31,6 +31,9 @@ public class ReviewResponseDto {
     // 좋아요
     private Integer likeCount;
 
+    // 구슬의 리뷰 제목
+    private String randSubject;
+
     public ReviewResponseDto(ReviewEntity review, Integer likeCount) {
         this.rIdx = review.getRIdx();
         this.rSubject = review.getRSubject();
@@ -51,6 +54,7 @@ public class ReviewResponseDto {
         this.uName = user.getName();
 
         this.likeCount = likeCount;
+        this.randSubject = randSubject;
 
     }
 }

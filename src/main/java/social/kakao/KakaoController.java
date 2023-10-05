@@ -107,7 +107,7 @@ public class KakaoController {
             Long idx = returnUser.getIdx();
             String role = returnUser.getRole().toString();
             String email = returnUser.getEmail();
-            String KakaoaccessToken = jwtService.createAccessToken(email);
+            String KakaoaccessToken = jwtService.createAccessToken(idx,email);
             String KakaoRefreshToken = jwtService.createRefreshToken();
             HttpHeaders responseHeaders = new HttpHeaders();
             responseHeaders.add("Authorization", "Bearer " + KakaoaccessToken);
@@ -131,7 +131,7 @@ public class KakaoController {
                     .socialType(SocialType.KAKAO)
                     .socialId(kakaoData.getId())
                     .role(Role.USER)
-                    .isGoodseul(1)
+                    .isGoodseul(null)
                     .build();
             userRepository.save(user);
                 log.info("카카오 계정 없음");

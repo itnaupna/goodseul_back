@@ -89,9 +89,12 @@ public class    JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
         userRepository.findByRefreshToken(refreshToken)
                 .ifPresent(userEntity ->{
                     String reIssuedRefreshToken = reIssueRefreshToken(userEntity);
-                    jwtService.sendAccessAndRefreshToken(response, jwtService.createAccessToken(userEntity.getEmail()),
+                    jwtService.sendAccessAndRefreshToken(response, jwtService.createAccessToken(userEntity.getIdx(), userEntity.getNickname()),
                             reIssuedRefreshToken);
                 });
+    }
+    public void checkRefreshTokenAndReIssueAccessTokenGoodseul(HttpServletResponse response, String refreshToken) {
+
     }
     /**
      * [리프레시 토큰 재발급 & DB에 리프레시 토큰 업데이트 메소드]
@@ -117,11 +120,12 @@ public class    JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
         log.info("checkAccessTokenAndAuthentication() 호출");
         jwtService.extractAccessToken(request) //액세스 토큰 추출
                 .filter(jwtService::isTokenValid)// 유효한 토큰인지 검증
-                .ifPresent(accessToken -> jwtService.extractEmail(accessToken) //유효하면 email 추출 후
-                        .ifPresent(email -> userRepository.findByEmail(email)
-                                .ifPresent(this::saveAuthentication))); // 파라미터 유저를 넘겨서 해당 유저를 인증 처리
+                .ifPresent(accessToken -> jwtService.extractIdx(accessToken) //유효하면 nickname 추출 후
+                        .ifPresent(idx -> userRepository.findByIdx(idx)
+                .ifPresent(this::saveAuthentication))); // 파라미터 유저를 넘겨서 해당 유저를 인증 처리
         filterChain.doFilter(request, response);
     }
+
     /**
      * [인증 허가 메소드]
      * 파라미터의 유저 : 우리가 만든 회원 객체 / 빌더의 유저 : UserDetails의 User 객체

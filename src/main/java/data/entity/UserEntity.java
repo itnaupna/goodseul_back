@@ -6,6 +6,8 @@ import lombok.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -17,14 +19,26 @@ public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idx;
+
     private String name;
+
+    @Column(name = "email")
     private String email;
+
     private String password;
+
+    @Column(name = "nickname")
     private String nickname;
+
     private String location;
+
     private String birth;
+
     private String phoneNumber;
-    private int isGoodseul;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "isGoodseul", referencedColumnName = "idx")
+    private GoodseulEntity isGoodseul;
 
     @Enumerated(EnumType.STRING)
     private Role role;
@@ -33,6 +47,7 @@ public class UserEntity {
     private SocialType socialType; // KAKAO, NAVER, GOOGLE
     private String socialId; // 로그인한 소셜 타입의 식별자 값 (일반 로그인인 경우 null)
     private String refreshToken;
+
     //유저 권한 설정 메소드
     public void authorizeUser() { //메소드 권한 설정
         this.role = Role.USER;
@@ -45,4 +60,6 @@ public class UserEntity {
     public void updateRefreshToken(String updateRefreshToken) {
         this.refreshToken = updateRefreshToken;
     }
+
+
 }

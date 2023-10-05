@@ -1,7 +1,10 @@
 package data.service;
 
+import data.dto.GoodseulDto;
 import data.dto.UserDto;
+import data.entity.GoodseulEntity;
 import data.entity.UserEntity;
+import data.repository.GoodseulRepository;
 import data.repository.UserRepository;
 import jwt.setting.config.Role;
 
@@ -11,11 +14,16 @@ import net.nurigo.sdk.message.model.Message;
 import net.nurigo.sdk.message.request.SingleMessageSendingRequest;
 import net.nurigo.sdk.message.response.SingleMessageSentResponse;
 import net.nurigo.sdk.message.service.DefaultMessageService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import javax.transaction.Transactional;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
@@ -25,13 +33,15 @@ import java.util.Random;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final GoodseulRepository goodseulRepository;
     private final PasswordEncoder passwordEncoder;
 
     private final DefaultMessageService messageService;
 
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, GoodseulRepository goodseulRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.goodseulRepository = goodseulRepository;
         this.passwordEncoder = passwordEncoder;
         this.messageService = NurigoApp.INSTANCE.initialize("NCSRLOLZ8HFH6SU6","GGK9IOYOQN3SHLF4P8X6VBNOILRNWPXV","https://api.coolsms.co.kr");
     }
@@ -52,13 +62,73 @@ public class UserService {
                 .phoneNumber(userDto.getPhoneNumber())
                 .location(userDto.getLocation())
                 .birth(userDto.getBirth())
-                .isGoodseul(userDto.getIsGoodseul())
+                .isGoodseul(null)
                 .role(Role.USER)
                 .build(); // 최종적으로 객체를 반환
         user.passwordEncode(passwordEncoder); // 사용자 비밀번호를 암호화하기 위한 Spring Security의 비밀번호 인코딩
         userRepository.save(user); // 새 사용자를 DB에 저장
+//        if(userDto.getIsGoodseul() >= 0){
+//            Optional<UserEntity> optionalUser = userRepository.findByEmail(userDto.getEmail());
+//            UserEntity userEntity = optionalUser.get();
+//            GoodseulEntity goodseul = GoodseulEntity.builder()
+//                    .email(userEntity)
+//                    .password(userEntity)
+//                    .birth(userEntity)
+//                    .build();
+//            goodseulRepository.save(goodseul);
+//        }
     }
 
+    //구슬님 회원가입
+    public void goodseulSignup(GoodseulDto goodseulDto, UserDto userDto) throws Exception{
+        if (userRepository.findByEmail(userDto.getEmail()).isPresent()) {
+            throw new Exception("이미 존재하는 이메일입니다");
+        }
+        UserEntity user = UserEntity.builder()
+                .email(userDto.getEmail())
+                .password(userDto.getPassword())
+                .nickname(userDto.getNickname())
+                .name(userDto.getName())
+                .phoneNumber(userDto.getPhoneNumber())
+                .location(userDto.getLocation())
+                .birth(userDto.getBirth())
+                .role(Role.GOODSEUL)
+                .build(); // 최종적으로 객체를 반환
+        user.passwordEncode(passwordEncoder); // 사용자 비밀번호를 암호화하기 위한 Spring Security의 비밀번호 인코딩
+        userRepository.save(user); // 새 사용자를 DB에 저장
+        GoodseulEntity goodseuls = GoodseulEntity.builder()
+                .skill(goodseulDto.getSkill())
+                .career(goodseulDto.getCareer())
+                .goodseulName(goodseulDto.getGoodseulName())
+                .isPremium(goodseulDto.getIsPremium())
+                .premiumDate(goodseulDto.getPremiumDate())
+                .goodseulProfile(goodseulDto.getGoodseulProfile())
+                .build();
+        user.setIsGoodseul(goodseuls);
+        goodseulRepository.save(goodseuls);
+    }
+
+    //회원정보 페이징
+    public Page<UserEntity>userPaging(long idx){
+            PageRequest pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "idx"));
+            Page<UserEntity> users = userRepository.findByIdxGreaterThan(idx, pageable);
+            return users; // 필요에 따라 반환할 수도 있습니다.
+        }
+    //회원정보 리스트
+    public List<UserDto> userList(){
+    List<UserDto> list = new ArrayList<>();
+    for(UserEntity entity : userRepository.findAll()){
+        list.add(UserDto.toUserDto(entity));
+    }
+    return list;
+    }
+    public List<GoodseulDto> goodseulList(){
+        List<GoodseulDto> list = new ArrayList<>();
+        for(GoodseulEntity entity : goodseulRepository.findAll()){
+            list.add(GoodseulDto.toGoodseulDto(entity));
+        }
+        return list;
+    }
     //비밀번호 변경
     public String pwdUpdate(String email, String password) {
         Optional<UserEntity> userId = userRepository.findByEmail(email);

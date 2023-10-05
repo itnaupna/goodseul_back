@@ -110,7 +110,7 @@ public class NaverController {
             Long idx = returnUser.getIdx();
             String role = returnUser.getRole().toString();
             String email = returnUser.getEmail();
-            String NaveraccessToken = jwtService.createAccessToken(email);
+            String NaveraccessToken = jwtService.createAccessToken(idx,email);
             String NaverRefreshToken = jwtService.createRefreshToken();
             HttpHeaders responseHeaders = new HttpHeaders();
             responseHeaders.add("Authorization", "Bearer " + NaveraccessToken);
@@ -137,7 +137,7 @@ public class NaverController {
                     .socialType(SocialType.NAVER)
                     .socialId(naverData.getId())
                     .role(Role.USER)
-                    .isGoodseul(1)
+                    .isGoodseul(null)
                     .build();
             userRepository.save(user);
             return new ResponseEntity<>(naverData, HttpStatus.ACCEPTED);

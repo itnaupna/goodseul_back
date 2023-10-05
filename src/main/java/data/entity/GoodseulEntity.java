@@ -1,10 +1,13 @@
 package data.entity;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jwt.setting.config.Role;
 import jwt.setting.config.SocialType;
 import lombok.*;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -15,35 +18,21 @@ import javax.persistence.*;
 public class GoodseulEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+
     private Long idx;
-    private String email;
-    private String password;
-    private String location;
-    private String phoneNumber;
-    private String birth;
+
     private String goodseulName;
+
     private String skill;
+
     private String career;
-    private String premiumDate;
 
-    @Enumerated(EnumType.STRING)
-    private Role role;
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
+    private Timestamp premiumDate;
 
-    @Enumerated(EnumType.STRING)
-    private SocialType socialType;
-    private String socialId;
-    private String refreshToken;
     private Integer isPremium;
+
     private String goodseulProfile;
 
-    public void authorizeUser() {
-        this.role = Role.GOODSEUL;
-    }
-    public void passwordEncode(PasswordEncoder passwordEncoder){
-        this.password = passwordEncoder.encode(this.password);
-    }
-    public void updateRefreshToken(String updateRefreshToken){
-        this.refreshToken = updateRefreshToken;
-    }
 
 }

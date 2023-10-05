@@ -58,16 +58,16 @@ public class OfferService {
 
         List<OfferDto> dtoList = new LinkedList<>();
 
-        if(userRepository.findByIdx(idx).get().getIsGoodseul() != 0) {
-            log.error("잘못된 요청입니다.");
-        } else {
+//        if(userRepository.findByIdx(idx).get().getIsGoodseul() != 0) {
+//            log.error("잘못된 요청입니다.");
+//        } else {
             if(offerRepository.findAllByUserIdx(idx).isPresent()) {
                 List<OfferEntity> list = offerRepository.findAllByUserIdx(idx).get();
                 for(OfferEntity entity : list) {
                     dtoList.add(OfferDto.offerEntityToDto(entity));
                 }
             }
-        }
+//        }
         return dtoList;
     }
 

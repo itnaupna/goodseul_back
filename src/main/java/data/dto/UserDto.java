@@ -1,10 +1,14 @@
 package data.dto;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import data.entity.GoodseulEntity;
+import data.entity.UserEntity;
+import lombok.*;
 
-@NoArgsConstructor
+@AllArgsConstructor
+@RequiredArgsConstructor
 @Data
+@Builder
+
 public class UserDto {
     private Long idx;
     private String email;
@@ -14,5 +18,22 @@ public class UserDto {
     private String phoneNumber;
     private String location;
     private String birth;
-    private int isGoodseul;
+    private long isGoodseul;
+
+    public static UserDto toUserDto (UserEntity entity) {
+
+        return UserDto.builder()
+                .idx(entity.getIdx())
+                .email(entity.getEmail())
+                .name(entity.getName())
+                .password(entity.getPassword())
+                .nickname(entity.getNickname())
+                .phoneNumber(entity.getPhoneNumber())
+                .location(entity.getLocation())
+                .birth(entity.getBirth())
+                .isGoodseul(entity.getIsGoodseul().getIdx())
+                .build();
+    }
+
 }
+

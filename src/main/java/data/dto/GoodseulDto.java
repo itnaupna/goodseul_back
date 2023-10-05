@@ -1,22 +1,32 @@
 package data.dto;
 
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import data.entity.GoodseulEntity;
+import lombok.*;
 
-@NoArgsConstructor
+import java.sql.Timestamp;
+
+@AllArgsConstructor
+@RequiredArgsConstructor
 @Data
+@Builder
 public class GoodseulDto {
     private Long idx;
-    private String email;
-    private String password;
-    private String phoneNumber;
     private String goodseulName;
-    private String birth;
-    private String location;
     private String skill;
     private String career;
-    private String isPremium;
-    private String premiumDate;
+    private int isPremium;
+    private Timestamp premiumDate;
     private String goodseulProfile;
+
+    public static GoodseulDto toGoodseulDto (GoodseulEntity entity){
+        return GoodseulDto.builder()
+                .idx(entity.getIdx())
+                .goodseulName(entity.getGoodseulName())
+                .skill(entity.getSkill())
+                .career(entity.getCareer())
+                .isPremium(entity.getIsPremium())
+                .premiumDate(entity.getPremiumDate())
+                .goodseulProfile(entity.getGoodseulProfile())
+                .build();
+    }
 }

@@ -25,7 +25,7 @@ public class CustomJsonUsernamePasswordAuthenticationFilter extends AbstractAuth
     private static final String DEFAULT_LOGIN_REQUEST_URL = "/login";// "/login"으로 오는 요청을 처리
     private static final String HTTP_METHOD = "POST"; //로그인 HTTP 메소드는 POST
     private static final String CONTENT_TYPE = "application/json"; //JSON타입의 데이터로 오는 로그인 요청만 처리
-    private static final String USERNAME_KEY = "email"; //회원 로그인 시 이메일 요청 JSon Key : "email"
+    private static final String USERNAME_KEY = "idx"; //회원 로그인 시 이메일 요청 JSon Key : "email"
     private static final String PASSWORD_KEY = "password"; //회원 로그인 시 비밀번호 요청 JSon Key : "password"
     private static final AntPathRequestMatcher DEFAULT_LOGIN_PATH_REQUEST_MATCHER =
             new AntPathRequestMatcher(DEFAULT_LOGIN_REQUEST_URL, HTTP_METHOD);   // "/login" + POST로 온 요청에 매칭된다.
@@ -60,10 +60,10 @@ public class CustomJsonUsernamePasswordAuthenticationFilter extends AbstractAuth
         }
         String messageBody = StreamUtils.copyToString(request.getInputStream(), StandardCharsets.UTF_8);
         Map<String, String> usernamePasswordMap = objectMapper.readValue(messageBody, Map.class);
-        String email = usernamePasswordMap.get(USERNAME_KEY);
+        String idx = usernamePasswordMap.get(USERNAME_KEY);
         String password = usernamePasswordMap.get(PASSWORD_KEY);
 
-        UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(email, password); //principal과 credentials 전달
+        UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(idx, password); //principal과 credentials 전달
         return this.getAuthenticationManager().authenticate(authRequest);
     }
 }

@@ -2,13 +2,16 @@ package data.controller;
 
 
 import data.dto.ReviewDto;
+import data.dto.ReviewResponseDto;
 import data.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -38,6 +41,9 @@ public class ReviewController {
         return new ResponseEntity<>(reviewService.insertReview(dto), HttpStatus.OK);
     }
 
-
+    @GetMapping("/lv0/review/best")
+    public ResponseEntity<List<ReviewResponseDto>> getTopReviews() {
+        return new ResponseEntity<>(reviewService.findTopReviews(), HttpStatus.OK);
+    }
 
 }

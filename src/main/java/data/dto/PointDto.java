@@ -16,15 +16,15 @@ import java.sql.Timestamp;
 @RequiredArgsConstructor
 @Builder
 public class PointDto {
-    private int point_idx; // 포인트 아이디
-    private int member_idx; // 멤버 아이디
+    private int point_idx;
+    private int member_idx;
     private String type;
-    private int point; // 포인트
+    private int point;
     private String comment;
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
     private Date create_date; // 발급일
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
-    private Date expire_date; // 만료일
+    private Date expire_date;
     private int sumPoint;
 
     public static PointDto toPointDto(PointEntity entity) {

@@ -2,6 +2,7 @@ package data.dto;
 
 import data.entity.GoodseulEntity;
 import data.entity.ReviewEntity;
+import data.entity.ReviewLikeEntity;
 import data.entity.UserEntity;
 import lombok.Data;
 
@@ -21,14 +22,16 @@ public class ReviewResponseDto {
     private String goodseulName;
     private String skill;
     private Integer isPremium;
-
-
+    private String goodseulProfile;
 
     // 유저 정보
     private  Long uIdx;
     private  String uName;
 
-    public ReviewResponseDto(ReviewEntity review) {
+    // 좋아요
+    private Integer likeCount;
+
+    public ReviewResponseDto(ReviewEntity review, Integer likeCount) {
         this.rIdx = review.getRIdx();
         this.rSubject = review.getRSubject();
         this.rContent = review.getRContent();
@@ -41,10 +44,13 @@ public class ReviewResponseDto {
         this.goodseulName = goodseul.getGoodseulName();
         this.skill = goodseul.getSkill();
         this.isPremium = goodseul.getIsPremium();
+        this.goodseulProfile = goodseul.getGoodseulProfile();
 
         UserEntity user = review.getUserEntity();
         this.uIdx = user.getIdx();
         this.uName = user.getName();
+
+        this.likeCount = likeCount;
 
     }
 }

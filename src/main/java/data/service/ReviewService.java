@@ -6,6 +6,7 @@ import data.entity.GoodseulEntity;
 import data.entity.ReviewEntity;
 import data.entity.UserEntity;
 import data.repository.GoodseulRepository;
+import data.repository.ReviewLikeRepository;
 import data.repository.ReviewRepository;
 import data.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -29,12 +31,14 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final GoodseulRepository goodseulRepository;
     private final UserRepository userRepository;
+    private final ReviewLikeRepository reviewLikeRepository;
 
     @Autowired
-    public ReviewService(ReviewRepository reviewRepository, GoodseulRepository goodseulRepository, UserRepository userRepository) {
+    public ReviewService(ReviewRepository reviewRepository, GoodseulRepository goodseulRepository, UserRepository userRepository, ReviewLikeRepository reviewLikeRepository) {
         this.reviewRepository = reviewRepository;
         this.goodseulRepository = goodseulRepository;
         this.userRepository = userRepository;
+        this.reviewLikeRepository = reviewLikeRepository;
     }
 
     public Map<String, Object> getPageReview(int page, int size, String sortProperty, String sortDirection, String keyword) {
@@ -44,16 +48,15 @@ public class ReviewService {
 
         if (keyword != null && !keyword.trim().isEmpty()) {
             result = reviewRepository.findByGoodseulEntity_GoodseulNameContainingOrUserEntity_NameContaining(keyword, keyword, pageable);
-            log.info("Goodseul Name: " + keyword + ", Username: " + keyword);
-            log.info("Pageable: " + pageable.toString());
         } else {
             result = reviewRepository.findAll(pageable);
         }
 
-        log.info("Getting page review with keyword: " + keyword);
-
         List<ReviewResponseDto> reviewDtos = result.getContent().stream()
-                .map(ReviewResponseDto::new)
+                .map(review -> {
+                    Integer likeCount = reviewLikeRepository.countReviewLikeEntitiesByReviewEntity_rIdx(review.getRIdx());
+                    return new ReviewResponseDto(review, likeCount);
+                })
                 .collect(Collectors.toList());
 
         Map<String, Object> response = new HashMap<>();
@@ -76,10 +79,19 @@ public class ReviewService {
 
         ReviewEntity review = ReviewEntity.toReviewEntity(dto, goodseul, user);
         reviewRepository.save(review);
-        log.info(dto.toString() + "서비스");
-        log.info(review.toString());
+
         return dto;
     }
+
+    public List<ReviewResponseDto> findTopReviews() {
+        Pageable topFive = PageRequest.of(0, 5);
+        List<Object[]> results = reviewRepository.findTopReviewsWithLikeCount(topFive);
+
+        return results.stream()
+                .map(result -> new ReviewResponseDto((ReviewEntity) result[0], ((Long) result[1]).intValue()))
+                .collect(Collectors.toList());
+    }
+
 
 
 }

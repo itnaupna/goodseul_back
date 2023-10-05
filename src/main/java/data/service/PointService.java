@@ -160,8 +160,6 @@ public class PointService {
             PointEntity savedCancelEvent = pointRepository.save(cancelEvent);
 
             List<PointHistoryEntity> pointHistory = pointHistoryRepository.findByOriginIdx(existingEvent.getPointIdx());
-            // 히스토리
-            log.info(pointHistory + "포인트 히스토리!!!");
 
             for (PointHistoryEntity history : pointHistory) {
                 PointHistoryEntity cancelHistory = new PointHistoryEntity();

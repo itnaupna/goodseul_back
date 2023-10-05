@@ -26,8 +26,8 @@ public class PointEntity {
 
 // user idx join 필요
 //    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "user", referencedColumnName = "idx", nullable = false)
-//    private  memberId;
+//    @JoinColumn(name = "member_idx", referencedColumnName = "idx", nullable = false)
+//    private UserEntity userEntity;
 
     @Column(name = "member_idx", nullable = false)
     private Integer memberIdx;

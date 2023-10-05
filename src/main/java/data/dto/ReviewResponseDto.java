@@ -2,6 +2,7 @@ package data.dto;
 
 import data.entity.GoodseulEntity;
 import data.entity.ReviewEntity;
+import data.entity.ReviewLikeEntity;
 import data.entity.UserEntity;
 import lombok.Data;
 
@@ -21,13 +22,19 @@ public class ReviewResponseDto {
     private String goodseulName;
     private String skill;
     private Integer isPremium;
+    private String goodseulProfile;
 
     // 유저 정보
-    private  Long uidx;
+    private  Long uIdx;
     private  String uName;
 
+    // 좋아요
+    private Integer likeCount;
 
-    public ReviewResponseDto(ReviewEntity review) {
+    // 구슬의 리뷰 제목
+    private String randSubject;
+
+    public ReviewResponseDto(ReviewEntity review, Integer likeCount) {
         this.rIdx = review.getRIdx();
         this.rSubject = review.getRSubject();
         this.rContent = review.getRContent();
@@ -35,15 +42,19 @@ public class ReviewResponseDto {
         this.rType = review.getRType();
         this.rCreateDate = review.getRCreateDate();
 
-        GoodseulEntity goodseul = review.getGIdx();
+        GoodseulEntity goodseul = review.getGoodseulEntity();
         this.gIdx = goodseul.getIdx();
         this.goodseulName = goodseul.getGoodseulName();
         this.skill = goodseul.getSkill();
         this.isPremium = goodseul.getIsPremium();
+        this.goodseulProfile = goodseul.getGoodseulProfile();
 
-        UserEntity user = review.getUIdx();
-        this.uidx = user.getIdx();
+        UserEntity user = review.getUserEntity();
+        this.uIdx = user.getIdx();
         this.uName = user.getName();
+
+        this.likeCount = likeCount;
+        this.randSubject = randSubject;
 
     }
 }

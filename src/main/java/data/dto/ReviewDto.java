@@ -30,8 +30,8 @@ public class ReviewDto {
                 .r_content(entity.getRContent())
                 .star(entity.getStar())
                 .r_type(entity.getRType())
-                .g_idx(entity.getGIdx().getIdx())
-                .u_idx(entity.getUIdx().getIdx())
+                .g_idx(entity.getGoodseulEntity().getIdx())
+                .u_idx(entity.getUserEntity().getIdx())
                 .r_create_date(entity.getRCreateDate())
                 .build();
     }

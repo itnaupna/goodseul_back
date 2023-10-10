@@ -24,7 +24,7 @@ public class PointController {
     }
 
     // 리스트
-    @GetMapping("/list")
+    @GetMapping("/lv1/point")
     public ResponseEntity<Map<String, Object>> getPointPage(@RequestParam(defaultValue = "0") int page,
                                                             @RequestParam(defaultValue = "10") int size,
                                                             @RequestParam int memberIdx) {
@@ -34,14 +34,14 @@ public class PointController {
     }
 
     // 총 포인트
-    @GetMapping("/totalPoint")
+    @GetMapping("/lv1/total")
     public int getTotalPoint (@RequestParam int member_idx) {
         return pointService.getTotalPoint(member_idx);
     }
 
 
     // 적립
-    @PostMapping("/point")
+    @PostMapping("/lv1/point")
     public ResponseEntity<String> addPoint (@RequestBody PointDto dto) {
         try {
             pointService.addPointEvent(dto);
@@ -52,13 +52,13 @@ public class PointController {
     }
 
     // 사용
-    @PostMapping("/use")
+    @PostMapping("/lv1/point/use")
     public String usePoint(@RequestBody PointDto dto) {
         return pointService.usePoint(dto.getMember_idx(), dto.getPoint(), dto.getComment());
     }
 
     // 취소
-    @PostMapping("/cancel")
+    @PostMapping("/lv0/point/cancel")
     public ResponseEntity<String> cancelPointUse(@RequestParam int pointIdx) {
         try {
             pointService.cancelPointUse(pointIdx);
@@ -69,7 +69,7 @@ public class PointController {
     }
 
     // 만료
-    @PostMapping("/expire")
+    @PostMapping("/lv0/point/expire")
     public ResponseEntity<String> expirePoint () {
         try {
             pointService.expirePoint();

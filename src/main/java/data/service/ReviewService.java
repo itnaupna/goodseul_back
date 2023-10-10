@@ -16,12 +16,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import javax.persistence.EntityNotFoundException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -52,12 +53,10 @@ public class ReviewService {
             result = reviewRepository.findAll(pageable);
         }
 
-        List<ReviewResponseDto> reviewDtos = result.getContent().stream()
-                .map(review -> {
-                    Integer likeCount = reviewLikeRepository.countReviewLikeEntitiesByReviewEntity_rIdx(review.getRIdx());
-                    return new ReviewResponseDto(review, likeCount);
-                })
-                .collect(Collectors.toList());
+        List<ReviewResponseDto> reviewDtos = result.getContent().stream().map(review -> {
+            Integer likeCount = reviewLikeRepository.countReviewLikeEntitiesByReviewEntity_rIdx(review.getRIdx());
+            return new ReviewResponseDto(review, likeCount);
+        }).collect(Collectors.toList());
 
         Map<String, Object> response = new HashMap<>();
         response.put("reviews", reviewDtos);
@@ -68,6 +67,39 @@ public class ReviewService {
 
         return response;
     }
+
+    public Map<String, Object> getPageMyReview(int page, int size, String sortProperty, String sortDirection, @PathVariable Long u_idx) {
+        Sort.Direction direction = Sort.Direction.fromString(sortDirection);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortProperty));
+        Page<ReviewEntity> result = reviewRepository.findByUserEntity_Idx(u_idx, pageable);
+
+        List<ReviewResponseDto> reviewDtos = result.getContent().stream().map(review -> {
+            Integer likeCount = reviewLikeRepository.countReviewLikeEntitiesByReviewEntity_rIdx(review.getRIdx());
+            return new ReviewResponseDto(review, likeCount);
+        }).collect(Collectors.toList());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("reviews", reviewDtos);
+        response.put("totalElements", result.getTotalElements());
+        response.put("totalPages", result.getTotalPages());
+        response.put("currentPage", result.getNumber() + 1);
+        response.put("hasNext", result.hasNext());
+
+        return response;
+    }
+
+    public ReviewResponseDto getOneReview(int r_idx) {
+        Optional<ReviewEntity> result = reviewRepository.findById(r_idx);
+
+        if(result.isPresent()) {
+            ReviewEntity review = result.get();
+            Integer likeCount = reviewLikeRepository.countReviewLikeEntitiesByReviewEntity_rIdx(review.getRIdx());
+            return new ReviewResponseDto(review, likeCount);
+        } else {
+            throw new EntityNotFoundException("해당 " + r_idx + " 리뷰를 찾을 수 없습니다");
+        }
+    }
+
 
     public ReviewDto insertReview(ReviewDto dto) {
         GoodseulEntity goodseul = goodseulRepository.findById(dto.getG_idx()).orElse(null);
@@ -87,9 +119,7 @@ public class ReviewService {
         Pageable topFive = PageRequest.of(0, 5);
         List<Object[]> results = reviewRepository.findTopReviewsWithLikeCount(topFive);
 
-        return results.stream()
-                .map(result -> new ReviewResponseDto((ReviewEntity) result[0], ((Long) result[1]).intValue()))
-                .collect(Collectors.toList());
+        return results.stream().map(result -> new ReviewResponseDto((ReviewEntity) result[0], ((Long) result[1]).intValue())).collect(Collectors.toList());
     }
 
 //    public List<ReviewResponseDto> findRandomPremiumReviews () {
@@ -101,22 +131,49 @@ public class ReviewService {
 //
 //    }
 
-    public List<ReviewResponseDto> findRandomPremiumReviews () {
+    public List<ReviewResponseDto> findRandomPremiumReviews() {
         Pageable topFiveRandom = PageRequest.of(0, 5);
         List<Object[]> reults = reviewRepository.findRandomPremiumReviews(topFiveRandom);
-        return reults.stream()
-                .map(result -> {
-                    ReviewEntity reviewEntity = (ReviewEntity) result[0];
-                    Integer likeCount = ((Long) result[1]).intValue();
+        return reults.stream().map(result -> {
+            ReviewEntity reviewEntity = (ReviewEntity) result[0];
+            Integer likeCount = ((Long) result[1]).intValue();
 
-                    ReviewResponseDto responseDto = new ReviewResponseDto(reviewEntity, likeCount);
+            ReviewResponseDto responseDto = new ReviewResponseDto(reviewEntity, likeCount);
 
-                    String randSubject = reviewRepository.findRandomReviewSubjectsByGIdx(reviewEntity.getGoodseulEntity().getIdx());
-                    responseDto.setRandSubject(randSubject);
+            String randSubject = reviewRepository.findRandomReviewSubjectsByGIdx(reviewEntity.getGoodseulEntity().getIdx());
+            responseDto.setRandSubject(randSubject);
 
-                    return responseDto;
-                })
-                .collect(Collectors.toList());
+            return responseDto;
+        }).collect(Collectors.toList());
+    }
+
+    public boolean deleteReview(int r_idx) {
+        boolean reult = reviewRepository.existsById(r_idx);
+        if (reult) {
+            reviewRepository.deleteById(r_idx);
+        }
+        return reult;
+    }
+
+    public boolean updateReview(int r_idx, ReviewDto dto) {
+        try {
+            Optional<ReviewEntity> entity = reviewRepository.findById(r_idx);
+
+            if (entity.isPresent()) {
+                ReviewEntity review = entity.get();
+                review.setRSubject(dto.getR_subject());
+                review.setRContent(dto.getR_content());
+                review.setRType(dto.getR_type());
+                review.setStar(dto.getStar());
+                reviewRepository.save(review);
+                return true;
+            }
+
+        } catch (Exception e) {
+            log.info("review update error" + e.getMessage());
+            return false;
+        }
+        return false;
     }
 
 

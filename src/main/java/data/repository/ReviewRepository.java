@@ -1,6 +1,5 @@
 package data.repository;
 
-import data.dto.ReviewResponseDto;
 import data.entity.ReviewEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,16 +22,12 @@ public interface ReviewRepository extends JpaRepository <ReviewEntity, Integer> 
             "LEFT JOIN GoodseulEntity g ON r.goodseulEntity.idx = g.idx " +
             "WHERE g.isPremium > 0 GROUP BY r ORDER BY FUNCTION('RAND') ")
     List<Object[]> findRandomPremiumReviews(Pageable pageable);
-
-//    @Query(value = "SELECT GROUP_CONCAT(r.r_subject) FROM (SELECT r_subject FROM review WHERE g_idx = :gIdx ORDER BY RAND() LIMIT 5) r",
-//            nativeQuery = true)
-//    String findRandomReviewSubjectsByGIdx(@Param("gIdx") Long gIdx);
-
     @Query(value = "SELECT GROUP_CONCAT(review.r_subject ORDER BY review.likeCount DESC) " +
             "FROM ( SELECT r.r_subject, COUNT(rl.r_idx) AS likeCount " +
             "    FROM review r LEFT JOIN review_like rl ON r.r_idx = rl.r_idx WHERE r.g_idx = :gIdx GROUP BY r.r_idx ORDER BY likeCount DESC " +
             "    LIMIT 5 ) AS review", nativeQuery = true)
-    String findRandomReviewSubjectsByGIdx(@Param("gIdx") Long gIdx);
+    String findRandomReviewSubjectsByGIdx(@Param("gIdx") Long g_idx);
+    Page<ReviewEntity> findByUserEntity_Idx(Long u_idx, Pageable pageable);
 
 }
 

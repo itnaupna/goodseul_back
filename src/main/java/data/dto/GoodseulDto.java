@@ -18,6 +18,12 @@ public class GoodseulDto {
     private Timestamp premiumDate;
     private String goodseulProfile;
 
+    public GoodseulDto(Long idx, String goodseulName, String skill, String career) {
+        this.idx = idx;
+        this.goodseulName = goodseulName;
+        this.skill = skill;
+        this.career =career;
+    }
     public static GoodseulDto toGoodseulDto (GoodseulEntity entity){
         return GoodseulDto.builder()
                 .idx(entity.getIdx())

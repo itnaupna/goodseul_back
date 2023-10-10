@@ -24,6 +24,7 @@ public class GoodseulDto {
         this.skill = skill;
         this.career =career;
     }
+  
     public static GoodseulDto toGoodseulDto (GoodseulEntity entity){
         return GoodseulDto.builder()
                 .idx(entity.getIdx())

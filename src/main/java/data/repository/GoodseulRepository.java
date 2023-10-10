@@ -15,5 +15,4 @@ import java.util.Optional;
 public interface GoodseulRepository extends JpaRepository<GoodseulEntity, Long> {
     Optional<GoodseulEntity> findByIdx(Long idx);
     Page<GoodseulEntity> findAll(Pageable pageable);
-
 }

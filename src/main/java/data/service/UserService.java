@@ -71,6 +71,16 @@ public class UserService {
                 .build(); // 최종적으로 객체를 반환
         user.passwordEncode(passwordEncoder); // 사용자 비밀번호를 암호화하기 위한 Spring Security의 비밀번호 인코딩
         userRepository.save(user); // 새 사용자를 DB에 저장
+//        if(userDto.getIsGoodseul() >= 0){
+//            Optional<UserEntity> optionalUser = userRepository.findByEmail(userDto.getEmail());
+//            UserEntity userEntity = optionalUser.get();
+//            GoodseulEntity goodseul = GoodseulEntity.builder()
+//                    .email(userEntity)
+//                    .password(userEntity)
+//                    .birth(userEntity)
+//                    .build();
+//            goodseulRepository.save(goodseul);
+//        }
     }
 
     //구슬님 회원가입
@@ -139,8 +149,6 @@ public class UserService {
     public List<GoodseulDto> getGoodseulIdxByLocation(String location){
         return userRepository.findGoodseulIdxByLocation(location);
     }
-
-
 
     //비밀번호 변경
     public String pwdUpdate(String email, String password) {

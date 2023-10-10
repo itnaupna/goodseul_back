@@ -15,9 +15,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.stream.Collectors;
+
 
 
 @Slf4j
@@ -67,6 +67,18 @@ public class UserController {
         return userService.getGoodseulIdxByLocation(location);
     }
 
+    @GetMapping("/lv0/userlist")
+    public Page<UserEntity> getUserList(@RequestParam(defaultValue = "0")long idx) {
+        return userService.userPaging(idx);
+    }
+    @GetMapping("/lv0/list")
+    public List<UserDto> List(){
+        return userService.userList();
+    }
+    @GetMapping("/lv0/goodseullist")
+    public List<GoodseulDto> goodseulList(){
+        return userService.goodseulList();
+    }
     @ResponseBody
     //비밀번호 변경
     @PostMapping("/lv0/pwdupdate")

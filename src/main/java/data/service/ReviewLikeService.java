@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.Optional;
 
@@ -48,13 +49,13 @@ public class ReviewLikeService {
         }
     }
 
-    public ResponseEntity<Object> deleteLike(Integer rIdx, Long uIdx) {
-        Optional<ReviewLikeEntity> optionalLike = reviewLikeRepository.findByReviewEntity_rIdxAndUserEntity_idx(rIdx, uIdx);
+    public ResponseEntity<Object> deleteLike (@PathVariable  int r_idx, @PathVariable Long u_idx) {
+        Optional<ReviewLikeEntity> optionalLike = reviewLikeRepository.findByReviewEntity_rIdxAndUserEntity_idx(r_idx, u_idx);
         if (optionalLike.isPresent()) {
             reviewLikeRepository.delete(optionalLike.get());
             return new ResponseEntity<>(HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND); // 404
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
 

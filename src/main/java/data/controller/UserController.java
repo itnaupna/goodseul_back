@@ -3,16 +3,21 @@ package data.controller;
 import data.dto.GoodseulDto;
 import data.dto.SignUpDto;
 import data.dto.UserDto;
+import data.entity.GoodseulEntity;
 import data.entity.UserEntity;
 import data.service.MailSendService;
 import data.service.UserService;
+import jwt.setting.settings.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
+import java.util.stream.Collectors;
+
 
 
 @Slf4j
@@ -24,6 +29,7 @@ public class UserController {
 
     private final UserService userService;
     private final MailSendService mailSendService;
+    private final JwtService jwtService;
 
     @ResponseBody
     //회원가입
@@ -37,6 +43,28 @@ public class UserController {
     public String goodseulSignUp(@RequestBody SignUpDto requestDto)throws Exception{
         userService.goodseulSignup(requestDto.getGoodseulDto(),requestDto.getUserDto());
         return "회원가입 성공";
+    }
+
+    @GetMapping("/lv0/userlist")
+    public ResponseEntity<?> userListPaging(@RequestParam(value = "page", required = false) Integer page) {
+        if (page != null) {
+            // 페이징 처리
+            Page<UserEntity> users = userService.userPaging(page);
+            List<UserDto> pagedUserList = users.getContent().stream()
+                    .map(UserDto::toUserDto)
+                    .collect(Collectors.toList());
+            return new ResponseEntity<>(pagedUserList, HttpStatus.OK);
+        } else {
+            // 전체 목록 반환
+            List<UserDto> users = userService.userList();
+            return new ResponseEntity<>(users, HttpStatus.OK);
+        }
+    }
+
+    //구슬님 지역별 조회
+    @GetMapping("/lv0/gslocation")
+    public List<GoodseulDto> getGoodseulIdxByLocation(@RequestParam String location){
+        return userService.getGoodseulIdxByLocation(location);
     }
 
     @GetMapping("/lv0/userlist")
@@ -100,5 +128,29 @@ public class UserController {
     public String sendSms(@RequestBody UserDto userdto){
         String authnum = userService.sendSms(userdto);
         return authnum;
+    }
+
+    @PostMapping("/lv0/logout")
+    public ResponseEntity<Void> logout(@RequestHeader("Authorization") String authorizationHeader) {
+        // 이 부분은 accessToken에서 email을 추출하는 것이므로,
+        // 실제 시나리오에 따라 필요한 정보를 header나 body에서 얻을 수 있도록 조정해야 합니다.
+        String accessToken = authorizationHeader.replace("Bearer ", "");
+        Long idx = jwtService.extractIdx(accessToken).orElseThrow(() -> new RuntimeException("idx 추출 실패"));
+
+        jwtService.logout(idx);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/lv0/deleteuser/{idx}")
+    public String deleteUser(@PathVariable Long idx){
+        userService.deleteUser(idx);
+        return "회원삭제";
+    }
+
+    @PutMapping("/lv0/updateuser/{idx}")
+    public String updateUser(@PathVariable Long idx, @RequestBody UserDto userdto){
+        userService.updateUser(idx, userdto);
+        return "회원 업데이트 완료";
     }
 }

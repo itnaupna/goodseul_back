@@ -8,6 +8,7 @@
 
 <div onclick="handleNaverApi()">네이버 로그인</div>
 <div onclick="handleKakaoApi()">카카오 로그인</div>
+<button id="logoutBtn">Logout</button>
 <script type="text/javascript">
 
     // 네이버 로그인 버튼 클릭 이벤트 핸들러
@@ -23,6 +24,33 @@
     const handleKakaoApi=() =>{
         window.location.href = KAKAO_AUTH_URI;
     }
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+        // 토큰을 가져옵니다. 실제로는 토큰 저장 방식(예: localStorage, sessionStorage)에 따라 다르게 구현해야 할 수 있습니다.
+        const token = localStorage.getItem('jwtToken');
+
+        if(!token) {
+            alert('Already logged out or no token found.');
+            return;
+        }
+
+        // 로그아웃 요청을 보냅니다.
+        fetch('/api/lv0/logout', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + token
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if(data.success) {
+                    // 로그아웃 성공시 토큰을 삭제합니다.
+                    localStorage.removeItem('jwtToken');
+                    alert('Successfully logged out.');
+                } else {
+                    alert('Error logging out.');
+                }
+            });
+    });
 </script>
 </body>
 </html>

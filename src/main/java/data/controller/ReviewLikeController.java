@@ -24,13 +24,12 @@ public class ReviewLikeController {
 
     @PostMapping("/lv0/like")
     public ResponseEntity<Object> insertLike(@RequestBody ReviewLikeDto dto) {
-        log.info(dto.toString());
-        return reviewLikeService.insertLike(dto);
+        return new ResponseEntity<> (reviewLikeService.insertLike(dto), HttpStatus.OK);
     }
 
-    @DeleteMapping("/lv0/like")
-    public ResponseEntity<Object> deleteLike(@RequestParam int rIdx, @RequestParam Long uIdx) {
-        return  reviewLikeService.deleteLike(rIdx, uIdx);
+    @DeleteMapping("/lv0/like/{r_idx}/{u_idx}")
+    public ResponseEntity<Object> deleteLike(@PathVariable int r_idx, @PathVariable Long u_idx) {
+        return new ResponseEntity<>(reviewLikeService.deleteLike(r_idx, u_idx),HttpStatus.OK);
     }
 
 }

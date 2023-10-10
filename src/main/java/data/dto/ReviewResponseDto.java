@@ -25,8 +25,9 @@ public class ReviewResponseDto {
     private String goodseulProfile;
 
     // 유저 정보
-    private  Long uIdx;
-    private  String uName;
+    private Long uIdx;
+    private String uNick;
+    private String uProfile;
 
     // 좋아요
     private Integer likeCount;
@@ -51,7 +52,7 @@ public class ReviewResponseDto {
 
         UserEntity user = review.getUserEntity();
         this.uIdx = user.getIdx();
-        this.uName = user.getName();
+        this.uNick = user.getNickname();
 
         this.likeCount = likeCount;
         this.randSubject = randSubject;

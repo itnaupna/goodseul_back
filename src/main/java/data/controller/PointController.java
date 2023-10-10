@@ -24,7 +24,7 @@ public class PointController {
     }
 
     // 리스트
-    @GetMapping("/list")
+    @GetMapping("/point")
     public ResponseEntity<Map<String, Object>> getPointPage(@RequestParam(defaultValue = "0") int page,
                                                             @RequestParam(defaultValue = "10") int size,
                                                             @RequestParam int memberIdx) {
@@ -34,7 +34,7 @@ public class PointController {
     }
 
     // 총 포인트
-    @GetMapping("/totalPoint")
+    @GetMapping("/total")
     public int getTotalPoint (@RequestParam int member_idx) {
         return pointService.getTotalPoint(member_idx);
     }

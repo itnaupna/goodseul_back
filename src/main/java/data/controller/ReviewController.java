@@ -36,7 +36,7 @@ public class ReviewController {
         return new ResponseEntity<>(reviewService.getPageReview(page, size, sortProperty, sortDirection, keyword), HttpStatus.OK);
     }
 
-    @GetMapping("/lv0/mypage/review/{u_idx}")
+    @GetMapping("/lv1/mypage/review/{u_idx}")
     public ResponseEntity<Map<String, Object>> getPageMyReview (
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size,
@@ -56,7 +56,7 @@ public class ReviewController {
         }
     }
 
-    @PostMapping("/lv0/review")
+    @PostMapping("/lv1/review")
     public ResponseEntity<ReviewDto> insertReview (@RequestBody ReviewDto dto) {
         log.info(dto.toString());
         return new ResponseEntity<>(reviewService.insertReview(dto), HttpStatus.OK);
@@ -72,7 +72,7 @@ public class ReviewController {
         return new ResponseEntity<>(reviewService.findRandomPremiumReviews(), HttpStatus.OK);
     }
 
-    @DeleteMapping("/lv0/review/{r_idx}")
+    @DeleteMapping("/lv1/review/{r_idx}")
     public ResponseEntity<Object> deleteReview (@PathVariable int r_idx) {
         boolean result = reviewService.deleteReview(r_idx);
         if(result) {
@@ -82,7 +82,7 @@ public class ReviewController {
         }
     }
 
-    @PutMapping("/lv0/review/{r_idx}")
+    @PutMapping("/lv1/review/{r_idx}")
     public ResponseEntity<Object> updateReview (@PathVariable int r_idx, @RequestBody ReviewDto dto) {
         boolean result = reviewService.updateReview(r_idx, dto);
         if(result) {

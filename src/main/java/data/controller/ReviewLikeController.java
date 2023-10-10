@@ -22,12 +22,12 @@ public class ReviewLikeController {
         this.reviewLikeService = reviewLikeService;
     }
 
-    @PostMapping("/lv0/like")
+    @PostMapping("/lv1/like")
     public ResponseEntity<Object> insertLike(@RequestBody ReviewLikeDto dto) {
         return new ResponseEntity<> (reviewLikeService.insertLike(dto), HttpStatus.OK);
     }
 
-    @DeleteMapping("/lv0/like/{r_idx}/{u_idx}")
+    @DeleteMapping("/lv1/like/{r_idx}/{u_idx}")
     public ResponseEntity<Object> deleteLike(@PathVariable int r_idx, @PathVariable Long u_idx) {
         return new ResponseEntity<>(reviewLikeService.deleteLike(r_idx, u_idx),HttpStatus.OK);
     }

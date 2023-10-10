@@ -18,17 +18,17 @@ public class FavoriteController {
         this.favoriteService = favoriteService;
     }
 
-    @PostMapping("/lv0/favorite")
+    @PostMapping("/lv1/favorite")
     public ResponseEntity<Object> insertFavorite (@RequestBody FavoriteDto dto) {
         return new ResponseEntity<>(favoriteService.insertFavorite(dto), HttpStatus.OK);
     }
 
-    @DeleteMapping("/lv0/favorite/{u_idx}/{g_idx}")
+    @DeleteMapping("/lv1/favorite/{u_idx}/{g_idx}")
     public ResponseEntity<Object> deleteFavorite (@PathVariable Long u_idx, @PathVariable Long g_idx) {
         return new ResponseEntity<>(favoriteService.deleteFavorite(u_idx, g_idx), HttpStatus.OK);
     }
 
-    @GetMapping("/lv0/favorite/{u_idx}")
+    @GetMapping("/lv1/favorite/{u_idx}")
     public ResponseEntity<Map<String, Object>> getPageFavorite (
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "6") int size,

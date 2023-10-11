@@ -5,6 +5,7 @@ import data.dto.SignUpDto;
 import data.dto.UserDto;
 import data.entity.GoodseulEntity;
 import data.entity.UserEntity;
+import data.repository.UserRepository;
 import data.service.MailSendService;
 import data.service.UserService;
 import jwt.setting.settings.JwtService;
@@ -30,6 +31,8 @@ public class UserController {
     private final UserService userService;
     private final MailSendService mailSendService;
     private final JwtService jwtService;
+
+    private final UserRepository userRepository;
 
     @ResponseBody
     //회원가입

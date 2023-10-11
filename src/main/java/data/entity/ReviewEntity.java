@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import data.dto.ReviewDto;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
@@ -49,12 +51,11 @@ public class ReviewEntity {
     private Timestamp rCreateDate;
 
     public static ReviewEntity toReviewEntity(ReviewDto dto, GoodseulEntity goodseul, UserEntity user) {
-        int scaledStar = dto.getStar() * 2;
         return ReviewEntity.builder()
                 .rIdx(dto.getR_idx())
                 .rSubject(dto.getR_subject())
                 .rContent(dto.getR_content())
-                .star(scaledStar)
+                .star(dto.getStar())
                 .rType(dto.getR_type())
                 .goodseulEntity(goodseul)
                 .userEntity(user)

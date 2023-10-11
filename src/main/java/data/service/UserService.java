@@ -6,6 +6,7 @@ import data.entity.GoodseulEntity;
 import data.entity.UserEntity;
 import data.repository.GoodseulRepository;
 import data.repository.UserRepository;
+import data.service.file.StorageService;
 import jwt.setting.config.Role;
 
 import jwt.setting.settings.JwtService;
@@ -18,12 +19,13 @@ import net.nurigo.sdk.message.service.DefaultMessageService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -41,12 +43,15 @@ public class UserService {
     private final JwtService jwtService;
 
     private final DefaultMessageService messageService;
+    private final StorageService storageService;
+    private final String PATH="userprofile";
 
-    public UserService(UserRepository userRepository, GoodseulRepository goodseulRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
+    public UserService(UserRepository userRepository, GoodseulRepository goodseulRepository, PasswordEncoder passwordEncoder, JwtService jwtService, StorageService storageService) {
         this.userRepository = userRepository;
         this.goodseulRepository = goodseulRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.storageService = storageService;
         this.messageService = NurigoApp.INSTANCE.initialize("NCSRLOLZ8HFH6SU6","GGK9IOYOQN3SHLF4P8X6VBNOILRNWPXV","https://api.coolsms.co.kr");
     }
 
@@ -216,5 +221,13 @@ public class UserService {
     //구슬 업데이트
     public void updateGoodseul(Long idx, GoodseulDto goodseulDto){
         goodseulRepository.updateAllBy(idx,goodseulDto.getCareer(), goodseulDto.getSkill(),goodseulDto.getGoodseulName());
+    }
+
+    public String updatePhoto(Long idx,MultipartFile upload) throws IOException {
+        String fileName = storageService.saveFile(upload, PATH);;
+        UserEntity user = userRepository.findByIdx(idx).get();
+        user.setUserProfile(fileName);
+        userRepository.save(user);
+        return fileName;
     }
 }

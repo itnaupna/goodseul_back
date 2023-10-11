@@ -7,6 +7,7 @@ import data.entity.GoodseulEntity;
 import data.entity.UserEntity;
 import data.service.MailSendService;
 import data.service.UserService;
+import data.service.file.StorageService;
 import jwt.setting.settings.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +16,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,6 +34,7 @@ public class UserController {
     private final UserService userService;
     private final MailSendService mailSendService;
     private final JwtService jwtService;
+    private final StorageService storageService;
 
     @ResponseBody
     //회원가입
@@ -87,7 +92,7 @@ public class UserController {
         return "변경";
     }
     //jwt test
-    @GetMapping("/jwt-test")
+    @GetMapping("/lv0/jwt-test")
     public String jwtTest(){
         return "jwtTest 요청 성공";
     }
@@ -150,15 +155,26 @@ public class UserController {
     }
 
     //회원 업데이트
-    @PutMapping("/lv0/updateuser/{idx}")
+    @PutMapping("/lv1/user/{idx}")
     public String updateUser(@PathVariable Long idx, @RequestBody UserDto userdto){
         userService.updateUser(idx, userdto);
         return "회원 업데이트 완료";
     }
 
-    @PutMapping("/lv0/updategs/{idx}")
+    @PutMapping("/lv1/Goodseul/{idx}")
     public String updateGoodseul(@PathVariable Long idx, @RequestBody GoodseulDto goodseulDto){
         userService.updateGoodseul(idx, goodseulDto);
         return "구슬회원 업데이트 완료";
+    }
+
+    @PatchMapping("/lv1/profile/{idx}")
+    public ResponseEntity<String> updatePhoto(@PathVariable Long idx,@RequestBody MultipartFile upload) throws IOException {
+        String fileName;
+        try{
+            fileName = userService.updatePhoto(idx, upload);
+        }catch (IOException e){
+            throw new IOException("오류류");
+        }
+        return ResponseEntity.ok(fileName);
     }
 }

@@ -91,7 +91,7 @@ public class ReviewService {
     public ReviewResponseDto getOneReview(int r_idx) {
         Optional<ReviewEntity> result = reviewRepository.findById(r_idx);
 
-        if(result.isPresent()) {
+        if (result.isPresent()) {
             ReviewEntity review = result.get();
             Integer likeCount = reviewLikeRepository.countReviewLikeEntitiesByReviewEntity_rIdx(review.getRIdx());
             return new ReviewResponseDto(review, likeCount);
@@ -134,17 +134,19 @@ public class ReviewService {
     public List<ReviewResponseDto> findRandomPremiumReviews() {
         Pageable topFiveRandom = PageRequest.of(0, 5);
         List<Object[]> reults = reviewRepository.findRandomPremiumReviews(topFiveRandom);
-        return reults.stream().map(result -> {
-            ReviewEntity reviewEntity = (ReviewEntity) result[0];
-            Integer likeCount = ((Long) result[1]).intValue();
+        return reults.stream()
+                .filter(result -> result[0] != null)
+                .map(result -> {
+                    ReviewEntity reviewEntity = (ReviewEntity) result[0];
+                    Integer likeCount = ((Long) result[1]).intValue();
 
-            ReviewResponseDto responseDto = new ReviewResponseDto(reviewEntity, likeCount);
+                    ReviewResponseDto responseDto = new ReviewResponseDto(reviewEntity, likeCount);
 
-            String randSubject = reviewRepository.findRandomReviewSubjectsByGIdx(reviewEntity.getGoodseulEntity().getIdx());
-            responseDto.setRandSubject(randSubject);
+                    String randSubject = reviewRepository.findRandomReviewSubjectsByGIdx(reviewEntity.getGoodseulEntity().getIdx());
+                    responseDto.setRandSubject(randSubject);
 
-            return responseDto;
-        }).collect(Collectors.toList());
+                    return responseDto;
+                }).collect(Collectors.toList());
     }
 
     public boolean deleteReview(int r_idx) {

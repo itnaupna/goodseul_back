@@ -4,6 +4,7 @@ import data.dto.GoodseulDto;
 import data.dto.SignUpDto;
 import data.dto.UserDto;
 import data.entity.UserEntity;
+import data.repository.UserRepository;
 import data.service.MailSendService;
 import data.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,8 @@ public class UserController {
 
     private final UserService userService;
     private final MailSendService mailSendService;
+
+    private final UserRepository userRepository;
 
     @ResponseBody
     //회원가입
@@ -101,4 +104,10 @@ public class UserController {
         String authnum = userService.sendSms(userdto);
         return authnum;
     }
+
+    @DeleteMapping("/lv0")
+    public void Delete (@RequestParam Long idx) {
+        userRepository.deleteById(idx);
+    }
+
 }

@@ -18,6 +18,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -115,10 +118,13 @@ public class NaverController {
             HttpHeaders responseHeaders = new HttpHeaders();
             responseHeaders.add("Authorization", "Bearer " + NaveraccessToken);
             responseHeaders.add("Authorization-Refresh", NaverRefreshToken);
+            Map<String, String> responseBody = new HashMap<>();
+            responseBody.put("email", email);
             returnUser.setRefreshToken(NaverRefreshToken);
             userRepository.save(returnUser);
             log.info("로그인 성공");
             log.info(NaveraccessToken);
+            return new ResponseEntity<>(responseBody, responseHeaders, HttpStatus.OK);
         } else if (optionalUser2.isPresent()) {
             log.info("이미 사용중인 이메일");
             String socialType = String.valueOf(optionalUser2.get().getSocialType());
@@ -134,6 +140,7 @@ public class NaverController {
             UserEntity user = UserEntity.builder()
                     .email(naverData.getEmail())
                     .name(naverData.getName())
+                    .phoneNumber(naverData.getMobile().replace("-",""))
                     .socialType(SocialType.NAVER)
                     .socialId(naverData.getId())
                     .role(Role.USER)
@@ -142,6 +149,25 @@ public class NaverController {
             userRepository.save(user);
             return new ResponseEntity<>(naverData, HttpStatus.ACCEPTED);
         }
-        return new ResponseEntity<>(accessToken, HttpStatus.ACCEPTED);
+
+    }
+    private void deleteToken(String accessToken){
+        RestTemplate rt = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-type", "application/x-www-form-urlencoded;charset=UTF-8");
+        MultiValueMap<String, String> param = new LinkedMultiValueMap<>();
+        param.add("grant_type", "delete");
+        param.add("client_id", client_id);
+        param.add("client_secret", client_secret);
+        param.add("access_token", accessToken);
+        param.add("service_provider","NAVER");
+        HttpEntity<MultiValueMap<String, String>> naverTokenRequest = new HttpEntity<>(param, headers);
+        ResponseEntity<String> response = rt.exchange(
+                "https://nid.naver.com/oauth2.0/token",
+                HttpMethod.POST,
+                naverTokenRequest,
+                String.class
+        );
+        log.info("네이버 로그아웃");
     }
 }

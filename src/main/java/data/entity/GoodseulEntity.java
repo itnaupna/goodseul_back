@@ -3,6 +3,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import jwt.setting.config.Role;
 import jwt.setting.config.SocialType;
 import lombok.*;
+import org.apache.catalina.User;
+
 
 import javax.persistence.*;
 import java.sql.Timestamp;
@@ -34,5 +36,6 @@ public class GoodseulEntity{
 
     private String goodseulProfile;
 
-
+    @OneToMany(mappedBy = "isGoodseul")
+    private List<UserEntity> users;
 }

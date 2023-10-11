@@ -184,6 +184,13 @@ public class JwtService {
                         () -> new Exception("일치하는 회원이 없습니다")
                 );
     }
+
+    //refreshToken 삭제 (로그아웃)
+    public void logout(Long idx) {
+        userRepository.removeRefreshTokenByIdx(idx);
+        log.info("{} 사용자의 refresh token이 제거되었습니다.", idx);
+    }
+
     //주어진 토큰이 유효한지 검증하는 메서드
     public boolean isTokenValid(String token) {
         try {

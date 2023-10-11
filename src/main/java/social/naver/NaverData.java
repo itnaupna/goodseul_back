@@ -8,5 +8,5 @@ public class NaverData {
     private String email;
     private String name;
     private String mobile;
-    private String mobiile_e164;
+    private String mobile_e164;
 }

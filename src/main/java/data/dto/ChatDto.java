@@ -14,11 +14,16 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 public class ChatDto {
 
+    public enum MessageType {
+        ENTER, TALK, EXIT
+    }
+
     private int sender;
     private int receiver;
     private String message;
+    private MessageType type;
     private Timestamp time;
-    private boolean readCheck;
+
 
     public ChatEntity convertToEntity(ChatDto chatDto) {
         return new ChatEntity(chatDto.getSender(), chatDto.getReceiver(), chatDto.getMessage(), chatDto.getTime());

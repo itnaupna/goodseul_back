@@ -58,11 +58,11 @@ public class SecurityConfig {
                 .authorizeRequests()
                 //아이콘, css, js 관련
                 // 기본 페이지, css, image, js 하위 폴더에 있는 자료들은 모두 접근 가능, h2-console에 접근 가능
-                .antMatchers("/", "/css/**", "/images/**", "/js/**", "/favicon.ico", "/h2-console/**", "/tsx/**","/html/**").permitAll()
-                .antMatchers("/api/lv1/**").authenticated() // authenticated는 인증된 사용자만 접근 가능
+                .antMatchers("/", "/css/**", "/images/**", "/js/**", "/favicon.ico", "/h2-console/**", "/tsx/**","/html/**","/ws").permitAll()
                 .antMatchers("/api/lv0/**", "/login").permitAll() // permitAll는 모든 사용자 접근 가능
                 .antMatchers("/api/sms/**").permitAll()
                 .antMatchers("/**").permitAll()
+                .antMatchers("/api/lv1/**").authenticated() // authenticated는 인증된 사용자만 접근 가능
                 .anyRequest().authenticated();
         //==소셜 로그인 설정 ==//
 //                .oauth2Login()
@@ -135,18 +135,20 @@ public class SecurityConfig {
         JwtAuthenticationProcessingFilter jwtAuthenticationFilter = new JwtAuthenticationProcessingFilter(jwtService, userRepository);
         return jwtAuthenticationFilter;
     }
-    
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));  // or your frontend server
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setExposedHeaders(Arrays.asList("Authorization", "Authorization-Refresh"));  // Add this line
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Authorization-Refresh", "content-type")); // Add "content-type" here
+        configuration.setExposedHeaders(Arrays.asList("Authorization", "Authorization-Refresh"));
+        configuration.setAllowCredentials(true);  // Add this line
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
+
 }
 
 

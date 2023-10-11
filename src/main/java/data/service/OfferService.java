@@ -34,8 +34,10 @@ public class OfferService {
         this.jwtService = jwtService;
     }
 
-    public String setOffer(OfferDto dto) {
-        Optional<UserEntity> user = userRepository.findByIdx(dto.getUserIdx());
+    public String setOffer(HttpServletRequest request,OfferDto dto) {
+        long idx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
+
+        Optional<UserEntity> user = userRepository.findByIdx(idx);
 
         if(user.isPresent()) {
             log.info("User data 조회 성공");
@@ -52,7 +54,7 @@ public class OfferService {
         return "견적 요청서 작성 완료";
     }
 
-    public List<OfferDto> getMyOfferList(HttpServletRequest request) {
+    public List<OfferDto> getMyOfferList(HttpServletRequest request,int page) {
         long idx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
         log.info("idx : " + idx);
 
@@ -61,11 +63,11 @@ public class OfferService {
 //        if(userRepository.findByIdx(idx).get().getIsGoodseul() != 0) {
 //            log.error("잘못된 요청입니다.");
 //        } else {
-            if(offerRepository.findAllByUserIdx(idx).isPresent()) {
-                List<OfferEntity> list = offerRepository.findAllByUserIdx(idx).get();
-                for(OfferEntity entity : list) {
-                    dtoList.add(OfferDto.offerEntityToDto(entity));
-                }
+            PageRequest pageRequest = PageRequest.of(page,5, Sort.by("writeDate").descending());
+            Page<OfferEntity> list = offerRepository.findAllByUserIdx(idx,pageRequest);
+
+            for(OfferEntity entity : list) {
+                dtoList.add(OfferDto.offerEntityToDto(entity));
             }
 //        }
         return dtoList;
@@ -73,12 +75,19 @@ public class OfferService {
 
     public List<OfferDto> getWeekOfferList(HttpServletRequest request,int page) {
         long idx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
-        PageRequest pageRequest = PageRequest.of(page,10, Sort.by("write_date").ascending());
-        Page<OfferEntity> list = offerRepository.findPostsWrittenInTheLastWeek(pageRequest);
+        log.info("idx : " + idx);
+
         List<OfferDto> dtoList = new LinkedList<>();
 
-        for(OfferEntity entity : list) {
-            dtoList.add(OfferDto.offerEntityToDto(entity));
+        if(userRepository.findByIdx(idx).get().getIsGoodseul().getIdx() == 0) {
+            log.error("잘못된 요청입니다.");
+        } else {
+            PageRequest pageRequest = PageRequest.of(page,10, Sort.by("write_date").descending());
+            Page<OfferEntity> list = offerRepository.findPostsWrittenInTheLastWeek(pageRequest);
+
+            for(OfferEntity entity : list) {
+                dtoList.add(OfferDto.offerEntityToDto(entity));
+            }
         }
 
         return dtoList;

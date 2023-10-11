@@ -19,14 +19,14 @@ const Room = () => {
 
 
   const connect = () => {
-    let sock = new SockJS("http://localhost:8080/ws-stomp");
+    let sock = new SockJS("http://localhost:8080/ws");
 
     client.current = StompJS.Stomp.over(sock);
     let ws = client.current;
     ws.debug = function(str) {
       console.log(str);
     };
-    ws.connect({}, (e) => {
+    ws.connect({},(e) => {
       console.log("WebSocket connected: ", e); // 연결 로그
       ws.subscribe("/sub/" + roomId, data => {
         console.log("Received message: ", data);
@@ -47,10 +47,11 @@ const Room = () => {
       messageData,
     ]);
 
-    fetch("http://localhost:8080/api/lv1/chat/update", {
+    fetch("http://localhost:8080/api/lv1/chat/message", {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJBY2Nlc3NUb2tlbiIsIm5pY2tuYW1lIjoia2RrIiwiZXhwIjoxNjk2OTE1MDk0LCJpZHgiOjEzfQ.IHepwxU5J-Pro7r_0KpHiKX0DvUulIR7nROg0yDNFf4nPZozLd3hm1t1C1nkT3IKOBoiWM-mGoetBRYZdT4D4Q"
       },
       body: JSON.stringify({
         sender: sendGetData.sender
@@ -60,7 +61,8 @@ const Room = () => {
   };
 
   const publish = (sender, receiver, message) => {
-    client.current.send("/pub/send", {}, JSON.stringify({
+    client.current.send("/pub/message", {}, JSON.stringify({
+      type : "TALK",
       sender,
       receiver,
       message: message.current.value,

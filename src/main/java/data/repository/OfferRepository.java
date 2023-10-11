@@ -16,7 +16,7 @@ public interface OfferRepository extends JpaRepository<OfferEntity, Integer> {
 
     Optional<OfferEntity> findByOfferIdx(int offerIdx);
 
-    Optional<List<OfferEntity>> findAllByUserIdx(long userIdx);
+    Page<OfferEntity> findAllByUserIdx(long idx,Pageable pageable);
 
     @Query(value = "SELECT * FROM offer WHERE write_date >= CURRENT_TIMESTAMP - INTERVAL 7 DAY", nativeQuery = true)
     Page<OfferEntity> findPostsWrittenInTheLastWeek(Pageable pageable);

@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ChatRoomRepository extends JpaRepository<ChatRoomEntity,Long> {
     public boolean existsByRoomId(String roomId);
+    public ChatRoomEntity findByRoomId(String roomId);
 }

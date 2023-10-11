@@ -6,6 +6,7 @@ import data.entity.ChatRoomEntity;
 import data.repository.ChatRepository;
 import data.repository.ChatRoomRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 import java.util.List;
 
@@ -47,5 +48,11 @@ public class ChatService {
             chatRepository.save(chatEntity);
         }
     }
+
+    public void handleSessionDisconnect(SessionDisconnectEvent e) {
+
+    }
+
+
 
 }

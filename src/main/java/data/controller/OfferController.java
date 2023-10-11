@@ -26,14 +26,13 @@ public class OfferController {
     }
 
     @PostMapping
-    private ResponseEntity<String> setOffer(@RequestBody OfferDto dto) {
-        return new ResponseEntity<>(offerService.setOffer(dto), HttpStatus.OK);
+    private ResponseEntity<String> setOffer(HttpServletRequest request, @RequestBody OfferDto dto) {
+        return new ResponseEntity<>(offerService.setOffer(request,dto), HttpStatus.OK);
     }
 
-    // 페이징 처리 요구. ( 5개 )
     @GetMapping("/my")
-    private ResponseEntity<List<OfferDto>> getList(HttpServletRequest request) {
-        return new ResponseEntity<>(offerService.getMyOfferList(request),HttpStatus.OK);
+    private ResponseEntity<List<OfferDto>> getList(HttpServletRequest request, @RequestParam(defaultValue = "0") int page) {
+        return new ResponseEntity<>(offerService.getMyOfferList(request,page),HttpStatus.OK);
     }
 
     @GetMapping("/list")

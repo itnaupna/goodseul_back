@@ -5,6 +5,7 @@ import data.dto.SignUpDto;
 import data.dto.UserDto;
 import data.entity.GoodseulEntity;
 import data.entity.UserEntity;
+import data.repository.UserRepository;
 import data.service.MailSendService;
 import data.service.UserService;
 import jwt.setting.settings.JwtService;
@@ -30,6 +31,7 @@ public class UserController {
     private final UserService userService;
     private final MailSendService mailSendService;
     private final JwtService jwtService;
+    private final UserRepository userRepository;
 
     @ResponseBody
     //회원가입
@@ -67,10 +69,6 @@ public class UserController {
         return userService.getGoodseulIdxByLocation(location);
     }
 
-    @GetMapping("/lv0/userlist")
-    public Page<UserEntity> getUserList(@RequestParam(defaultValue = "0")long idx) {
-        return userService.userPaging(idx);
-    }
     @GetMapping("/lv0/list")
     public List<UserDto> List(){
         return userService.userList();
@@ -152,5 +150,10 @@ public class UserController {
     public String updateUser(@PathVariable Long idx, @RequestBody UserDto userdto){
         userService.updateUser(idx, userdto);
         return "회원 업데이트 완료";
+    }
+
+    @DeleteMapping("/lv0")
+    public void delete(@RequestParam Long idx) {
+        userRepository.deleteById(idx);
     }
 }

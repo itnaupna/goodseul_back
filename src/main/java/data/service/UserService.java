@@ -131,9 +131,9 @@ public class UserService {
     }
 
     //구슬님 페이징
-    public Page<GoodseulEntity> goodseulPaging(int page){
-        PageRequest pageable = PageRequest.of(page, 5,Sort.by(Sort.Direction.ASC,"idx"));
-        return goodseulRepository.findAll(pageable);
+    public Page<GoodseulDto> goodseulPaging(String location,int page){
+        PageRequest pageable = PageRequest.of(page, 3,Sort.by(Sort.Direction.ASC,"idx"));
+        return userRepository.findGoodseulIdxByLocation(location, pageable);
     }
 
     //구슬님 리스트
@@ -143,11 +143,6 @@ public class UserService {
             list.add(GoodseulDto.toGoodseulDto(entity));
         }
         return list;
-    }
-
-    //구슬님 지역별 리스트
-    public List<GoodseulDto> getGoodseulIdxByLocation(String location){
-        return userRepository.findGoodseulIdxByLocation(location);
     }
 
     //비밀번호 변경
@@ -213,8 +208,13 @@ public class UserService {
         userRepository.deleteAllByIdx(idx);
     }
 
+    //회원 업데이트
     public void updateUser(Long idx, UserDto userDto){
      userRepository.updateAllBy(idx, userDto.getName(), userDto.getNickname(),userDto.getPhoneNumber());
     }
 
+    //구슬 업데이트
+    public void updateGoodseul(Long idx, GoodseulDto goodseulDto){
+        goodseulRepository.updateAllBy(idx,goodseulDto.getCareer(), goodseulDto.getSkill(),goodseulDto.getGoodseulName());
+    }
 }

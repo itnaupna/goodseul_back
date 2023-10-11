@@ -66,14 +66,14 @@ public class UserController {
 
     //구슬님 지역별 조회
     @GetMapping("/lv0/gslocation")
-    public List<GoodseulDto> getGoodseulIdxByLocation(@RequestParam String location){
-        return userService.getGoodseulIdxByLocation(location);
-    }
+    public ResponseEntity<?> getGoodseulIdxByLocation(@RequestParam(value = "page", defaultValue = "0") Integer page, @RequestParam String location) {
+            Page<GoodseulDto> gsPage = userService.goodseulPaging(location, page);
+            List<GoodseulDto> pageGsList = gsPage.getContent();
 
-    @GetMapping("/lv0/userlist")
-    public Page<UserEntity> getUserList(@RequestParam(defaultValue = "0")long idx) {
-        return userService.userPaging(idx);
-    }
+            return new ResponseEntity<>(pageGsList, HttpStatus.OK);
+        }
+
+
     @GetMapping("/lv0/list")
     public List<UserDto> List(){
         return userService.userList();
@@ -145,15 +145,23 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
+    //회원삭제
     @DeleteMapping("/lv0/deleteuser/{idx}")
     public String deleteUser(@PathVariable Long idx){
         userService.deleteUser(idx);
         return "회원삭제";
     }
 
+    //회원 업데이트
     @PutMapping("/lv0/updateuser/{idx}")
     public String updateUser(@PathVariable Long idx, @RequestBody UserDto userdto){
         userService.updateUser(idx, userdto);
         return "회원 업데이트 완료";
+    }
+
+    @PutMapping("/lv0/updategs/{idx}")
+    public String updateGoodseul(@PathVariable Long idx, @RequestBody GoodseulDto goodseulDto){
+        userService.updateGoodseul(idx, goodseulDto);
+        return "구슬회원 업데이트 완료";
     }
 }

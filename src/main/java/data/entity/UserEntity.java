@@ -36,6 +36,8 @@ public class UserEntity {
 
     private String phoneNumber;
 
+    private String userProfile;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "isGoodseul", referencedColumnName = "idx")
     private GoodseulEntity isGoodseul;

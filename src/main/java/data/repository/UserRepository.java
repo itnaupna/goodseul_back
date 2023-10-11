@@ -26,7 +26,7 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     Page<UserEntity> findAll(Pageable pageable);
 
 
-    @Query("SELECT new data.dto.GoodseulDto(g.idx, g.goodseulName, g.skill, g.career) FROM GoodseulEntity g WHERE g.idx IN (SELECT u.isGoodseul.idx FROM UserEntity u WHERE u.location = :location)")
+    @Query("SELECT new data.dto.GoodseulDto(g.idx, g.goodseulName, g.skill, g.career, g.goodseulProfile) FROM GoodseulEntity g WHERE g.idx IN (SELECT u.isGoodseul.idx FROM UserEntity u WHERE u.location = :location)")
     Page<GoodseulDto> findGoodseulIdxByLocation(@Param("location") String location, Pageable pageable);
 
     @Transactional

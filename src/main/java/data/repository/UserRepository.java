@@ -25,8 +25,9 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
     Page<UserEntity> findAll(Pageable pageable);
 
+
     @Query("SELECT new data.dto.GoodseulDto(g.idx, g.goodseulName, g.skill, g.career) FROM GoodseulEntity g WHERE g.idx IN (SELECT u.isGoodseul.idx FROM UserEntity u WHERE u.location = :location)")
-    List<GoodseulDto> findGoodseulIdxByLocation(@Param("location") String location);
+    Page<GoodseulDto> findGoodseulIdxByLocation(@Param("location") String location, Pageable pageable);
 
     @Transactional
     @Modifying
@@ -37,7 +38,7 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
     @Modifying
     @Query("UPDATE UserEntity u SET u.name = :name, u.nickname = :nickname, u.phoneNumber = :phoneNumber WHERE u.idx = :idx")
-    void updateAllBy(@Param("idx") Long idx, @Param("name") String name, @Param("nickname") String email, @Param("phoneNumber") String phoneNumber);
+    void updateAllBy(@Param("idx") Long idx, @Param("name") String name, @Param("nickname") String nickname, @Param("phoneNumber") String phoneNumber);
 
 
 }

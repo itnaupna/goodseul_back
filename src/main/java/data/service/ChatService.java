@@ -5,6 +5,7 @@ import data.entity.ChatEntity;
 import data.entity.ChatRoomEntity;
 import data.repository.ChatRepository;
 import data.repository.ChatRoomRepository;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
@@ -50,6 +51,10 @@ public class ChatService {
     }
 
     public void handleSessionDisconnect(SessionDisconnectEvent e) {
+
+    }
+
+    public void handleMessage(ChatDto chatDto, StompHeaderAccessor headerAccessor) {
 
     }
 

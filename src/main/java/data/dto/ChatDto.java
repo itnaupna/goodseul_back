@@ -14,14 +14,10 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 public class ChatDto {
 
-    public enum MessageType {
-        ENTER, TALK, EXIT
-    }
-
     private int sender;
     private int receiver;
     private String message;
-    private MessageType type;
+    private String type;
     private Timestamp time;
 
 

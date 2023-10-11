@@ -1,37 +1,41 @@
 package data.service;
 
 import data.dto.ChatDto;
+import data.dto.ChatRoomDto;
 import data.entity.ChatEntity;
 import data.entity.ChatRoomEntity;
 import data.repository.ChatRepository;
 import data.repository.ChatRoomRepository;
+import jwt.setting.config.Role;
+import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ChatService {
-
+    private final SimpMessageSendingOperations sendingOperations;
     private final ChatRepository chatRepository;
     private final ChatRoomRepository chatRoomRepository;
+    private Map<String, ChatRoomDto> session = new HashMap<>();
 
-    public ChatService(ChatRepository chatRepository, ChatRoomRepository chatRoomRepository) {
+    public ChatService(SimpMessageSendingOperations sendingOperations, ChatRepository chatRepository, ChatRoomRepository chatRoomRepository) {
+        this.sendingOperations = sendingOperations;
         this.chatRepository = chatRepository;
         this.chatRoomRepository = chatRoomRepository;
     }
 
     public String createChatRoom (int person1, int person2) {
         ChatRoomEntity chatRoomEntity = new ChatRoomEntity();
+        chatRoomEntity.setRoomId(roomNameCheck(person1,person2));
 
-        if(person1 > person2) {
-            chatRoomEntity.setRoomId(person2 + "to" + person1);
-        } else {
-            chatRoomEntity.setRoomId(person1 + "to" + person2);
+        if(!chatRoomRepository.existsByRoomId(chatRoomEntity.getRoomId())) {
+            chatRoomRepository.save(chatRoomEntity);
         }
-
-        chatRoomRepository.save(chatRoomEntity);
         return chatRoomEntity.getRoomId();
     }
 
@@ -51,11 +55,51 @@ public class ChatService {
     }
 
     public void handleSessionDisconnect(SessionDisconnectEvent e) {
+        StompHeaderAccessor headers = StompHeaderAccessor.wrap(e.getMessage());
+        String sessionId = headers.getSessionId();
+        String roomId = session.get(sessionId).getRoomId();
+
+        ChatRoomDto chatRoomDto = session.get(sessionId);
+        session.remove(sessionId);
+        ChatDto chatDto = new ChatDto();
+        chatDto.setType("EXIT");
+        chatDto.setSender(chatRoomDto.getUserIdx());
+        chatDto.setMessage(chatRoomDto.getUserIdx() + "님이 퇴장 하셨습니다.");
+
+        sendingOperations.convertAndSend("/sub/"+ roomId,chatDto);
 
     }
 
     public void handleMessage(ChatDto chatDto, StompHeaderAccessor headerAccessor) {
+        String sessionId = headerAccessor.getSessionId();
+        String roomId = roomNameCheck(chatDto.getSender(),chatDto.getReceiver());
 
+        switch (chatDto.getType()) {
+            case "ENTER":
+                chatDto.setMessage(chatDto.getSender() + "님이 입장하셨습니다.");
+                ChatRoomDto chatRoomDto = new ChatRoomDto(roomId,sessionId,chatDto.getSender());
+                session.put(sessionId,chatRoomDto);
+                sendingOperations.convertAndSend("/sub/"+roomId, chatDto);
+                break;
+
+            case "TALK":
+                break;
+
+            case "EXIT":
+                break;
+
+            default:
+                throw new IllegalArgumentException("Invalid message type:" + chatDto.getType());
+        }
+        sendingOperations.convertAndSend("/sub/" + roomId, chatDto);
+    }
+
+    public String roomNameCheck (int person1, int person2) {
+        if(person1 > person2) {
+            return person2 + "to" + person1;
+        } else {
+            return person1 + "to" + person2;
+        }
     }
 
 

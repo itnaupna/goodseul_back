@@ -3,8 +3,6 @@ package data.dto;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.util.List;
-
 @Getter
 public class ChatRoomDto {
     private String roomId;

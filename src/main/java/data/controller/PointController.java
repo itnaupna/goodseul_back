@@ -34,7 +34,7 @@ public class PointController {
     }
 
     // 총 포인트
-    @GetMapping("/lv1/total")
+    @GetMapping("/lv1/point/total")
     public int getTotalPoint (@RequestParam int member_idx) {
         return pointService.getTotalPoint(member_idx);
     }

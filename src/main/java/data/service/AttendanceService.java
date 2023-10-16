@@ -90,71 +90,74 @@ public class AttendanceService {
     }
 
     public int attend(int position, HttpServletRequest request) {
-        long userIdx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
 
-        AttendanceEntity attendanceEntity = getAttendanceEntity(request);
-        StringTokenizer st = new StringTokenizer(attendanceEntity.getAttendanceData());
-        int[] countPoint = {5, 2, 1, 1, 1};
+        if(checkAttendance(request)) {
+           return -1;
+        } else {
+            long userIdx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
 
-        int[] point = new int[10];
-        int returnedPoint = -1;
+            AttendanceEntity attendanceEntity = getAttendanceEntity(request);
+            StringTokenizer st = new StringTokenizer(attendanceEntity.getAttendanceData());
+            int[] countPoint = {5, 2, 1, 1, 1};
 
-        for (int i = 0; i < 10; i++) {
-            int checkPoint = Integer.parseInt(st.nextToken());
+            int[] point = new int[10];
+            int returnedPoint = -1;
 
-            switch (checkPoint) {
-                case 5:
-                    countPoint[0]--;
-                    break;
-                case 10:
-                    countPoint[1]--;
-                    break;
-                case 15:
-                    countPoint[2]--;
-                    break;
-                case 20:
-                    countPoint[3]--;
-                    break;
-                case 25:
-                    countPoint[4]--;
-                    break;
-            }
+            for (int i = 0; i < 10; i++) {
+                int checkPoint = Integer.parseInt(st.nextToken());
 
-            point[i] = checkPoint;
-            if (position == i) {
-                if (checkPoint != 0) {
-                    log.error("에러 발생 : 이미 선택된 위치 재 선택");
-                } else {
-                    returnedPoint = getRandomPoint(countPoint);
-                    log.info(Arrays.toString(point));
-                    point[position] = returnedPoint;
-                    StringBuilder sb = new StringBuilder();
+                switch (checkPoint) {
+                    case 5:
+                        countPoint[0]--;
+                        break;
+                    case 10:
+                        countPoint[1]--;
+                        break;
+                    case 15:
+                        countPoint[2]--;
+                        break;
+                    case 20:
+                        countPoint[3]--;
+                        break;
+                    case 25:
+                        countPoint[4]--;
+                        break;
+                }
 
-                    for (int a : point) {
-                        sb.append(a).append(" ");
+                point[i] = checkPoint;
+                if (position == i) {
+                    if (checkPoint != 0) {
+                        log.error("에러 발생 : 이미 선택된 위치 재 선택");
+                    } else {
+                        returnedPoint = getRandomPoint(countPoint);
+                        log.info(Arrays.toString(point));
+                        point[position] = returnedPoint;
+                        StringBuilder sb = new StringBuilder();
+
+                        for (int a : point) {
+                            sb.append(a).append(" ");
+                        }
+
+                        if (sb.charAt(sb.length() - 1) == ' ') {
+                            //마지막에 공백 삽입시 제거
+                            sb.deleteCharAt(sb.length() - 1);
+                        }
+
+                        attendanceEntity.setAttendanceData(sb.toString());
+                        attendanceEntity.setLastAttendance(new Timestamp(System.currentTimeMillis()));
+
+                        attendanceRepository.save(attendanceEntity);
+
+                        PointDto pointDto = new PointDto();
+                        pointDto.setMember_idx((int) userIdx);
+                        pointDto.setPoint(returnedPoint);
+
+                        pointService.addPointEvent(pointDto);
                     }
-
-                    if (sb.charAt(sb.length() - 1) == ' ') {
-                        //마지막에 공백 삽입시 제거
-                        sb.deleteCharAt(sb.length() - 1);
-                    }
-
-                    attendanceEntity.setAttendanceData(sb.toString());
-                    attendanceEntity.setLastAttendance(new Timestamp(System.currentTimeMillis()));
-
-                    attendanceRepository.save(attendanceEntity);
-
-                    PointDto pointDto = new PointDto();
-                    pointDto.setMember_idx((int) userIdx);
-                    pointDto.setPoint(returnedPoint);
-
-                    pointService.addPointEvent(pointDto);
                 }
             }
+            return returnedPoint;
         }
-
-
-        return returnedPoint;
     }
 
     private AttendanceEntity getAttendanceEntity(UserEntity user) {

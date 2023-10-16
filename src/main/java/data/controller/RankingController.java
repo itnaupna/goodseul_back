@@ -24,7 +24,7 @@ public class RankingController {
 
     @PostMapping
     public ResponseEntity<Void> submitScore(@RequestBody JsonNode jsonNode, HttpServletRequest request) {
-        rankingService.submitScoreWithHash(jsonNode.get("gameIdx").asText(),jsonNode.get("score").asDouble(),request);
+        rankingService.submitScoreWithHash(jsonNode.get("gameIdx").asText(),jsonNode.get("score").asDouble(),request, jsonNode.get("orderBy").asInt());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

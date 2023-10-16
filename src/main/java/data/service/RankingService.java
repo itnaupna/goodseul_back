@@ -23,15 +23,31 @@ public class RankingService {
         this.redisTemplate = redisTemplate;
     }
 
-    public void submitScoreWithHash(String gameId, double score, HttpServletRequest request) {
-        long userId = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
-        // ZSet에 점수 저장
-        redisTemplate.opsForZSet().add(RANKING_PREFIX + gameId, userId, score);
+    public void submitScoreWithHash(String gameId, double score, HttpServletRequest request, int orderBy) {
 
-        // Hash에 타임스탬프 저장
-        String hashKey = RANKING_PREFIX + gameId + ":timestamps";
-        redisTemplate.opsForHash().put(hashKey, userId, Long.toString(System.currentTimeMillis()));
+        String userId = String.valueOf(jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get());
+
+        // 유저의 현재 점수를 가져옵니다.
+        Double currentScore = redisTemplate.opsForZSet().score(RANKING_PREFIX + gameId, userId);
+
+        // orderBy 값에 따라 조건을 분기합니다.
+        boolean shouldUpdate;
+        if (orderBy == 1) {
+            shouldUpdate = (currentScore == null || score < currentScore); // 낮은 점수가 높은 랭크인 경우
+        } else {
+            shouldUpdate = (currentScore == null || score > currentScore); // 높은 점수가 높은 랭크인 경우
+        }
+
+        if (shouldUpdate) {
+            redisTemplate.opsForZSet().add(RANKING_PREFIX + gameId, userId, score);
+
+            // 새로운 점수가 저장되었으므로 타임스탬프도 갱신합니다.
+            String hashKey = RANKING_PREFIX + gameId + ":timestamps";
+            redisTemplate.opsForHash().put(hashKey, userId, Long.toString(System.currentTimeMillis()));
+        }
     }
+
+
 
 
 //    public List<RankResponseDto> getRanking(String gameIdx, String userIdx) {
@@ -135,8 +151,5 @@ public class RankingService {
 
         return new RankResponseDto(userId, (int) (rank + 1), score.intValue(), timestamp);  // Redis의 rank는 0부터 시작하므로 1을 더함
     }
-
-
-
 
 }

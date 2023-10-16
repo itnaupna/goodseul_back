@@ -12,4 +12,10 @@ public interface BoardRepository extends JpaRepository<BoardEntity, Integer> {
 
     @Query("SELECT new data.dto.BoardDto(b.subject, b.tag, b.writeDate) FROM BoardEntity b WHERE b.category = :category")
     Page<BoardDto> findBoardByCategory(@Param("category") String category, Pageable pageable);
+
+    Page<BoardEntity> findByCategoryAndSubjectContaining(String category, String keyword, Pageable pageable);
+    BoardEntity findByIdx(Long idx);
+
+    void deleteAllByIdx(Long idx);
+
 }

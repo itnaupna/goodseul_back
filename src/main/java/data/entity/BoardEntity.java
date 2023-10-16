@@ -18,12 +18,13 @@ public class BoardEntity {
 
     private String subject;
 
+    @Column(columnDefinition = "VARCHAR(1000)")
     private String content;
 
     private String tag;
 
-
     private String nickname;
+
     private String category;
 
     private LocalDate writeDate;

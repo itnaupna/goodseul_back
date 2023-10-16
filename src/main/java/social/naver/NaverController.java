@@ -112,8 +112,10 @@ public class NaverController {
             UserEntity returnUser = optionalUser1.get();
             Long idx = returnUser.getIdx();
             String role = returnUser.getRole().toString();
-            String email = returnUser.getEmail();
-            String NaveraccessToken = jwtService.createAccessToken(idx,email);
+            String nickname = returnUser.getNickname().toString();
+            String email = returnUser.getEmail().toString();
+            String userProfile = returnUser.getUserProfile().toString();
+            String NaveraccessToken = jwtService.createAccessToken(idx,nickname,userProfile);
             String NaverRefreshToken = jwtService.createRefreshToken();
             HttpHeaders responseHeaders = new HttpHeaders();
             responseHeaders.add("Authorization", "Bearer " + NaveraccessToken);

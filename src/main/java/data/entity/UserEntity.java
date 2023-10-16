@@ -36,7 +36,7 @@ public class UserEntity {
 
     private String phoneNumber;
 
-    private String userProfile;
+    private String userProfile="NoImage";
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "isGoodseul", referencedColumnName = "idx")

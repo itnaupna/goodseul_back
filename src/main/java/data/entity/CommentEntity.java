@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 
 import javax.persistence.*;
@@ -31,11 +30,11 @@ public class CommentEntity {
     private String modifiedDate;
 
     @ManyToOne
-    @JoinColumn(name ="board_idx")
+    @JoinColumn(name ="board_id")
     private BoardEntity boards;
 
     @ManyToOne
-    @JoinColumn(name = "user_idx")
+    @JoinColumn(name = "user_id")
     private UserEntity user; // 작성자
 }
 

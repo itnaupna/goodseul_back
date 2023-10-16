@@ -3,7 +3,6 @@ package data.controller;
 import data.dto.GoodseulDto;
 import data.dto.SignUpDto;
 import data.dto.UserDto;
-import data.entity.GoodseulEntity;
 import data.entity.UserEntity;
 import data.service.MailSendService;
 import data.service.UserService;
@@ -14,10 +13,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,15 +34,16 @@ public class UserController {
     private final UserService userService;
     private final MailSendService mailSendService;
     private final JwtService jwtService;
-    private final StorageService storageService;
 
     @ResponseBody
-    //회원가입
+    //일반 유저 회원가입
     @PostMapping("/lv0/user/sign-up")
     public String userSignUp(@RequestBody UserDto userDto) throws Exception{
         userService.signUp(userDto);
         return "회원가입 성공";
     }
+
+    //구슬님 회원가입
     @ResponseBody
     @PostMapping("/lv0/goodseul/sign-up")
     public String goodseulSignUp(@RequestBody SignUpDto requestDto)throws Exception{
@@ -50,6 +51,7 @@ public class UserController {
         return "회원가입 성공";
     }
 
+    //유저 리스트
     @GetMapping("/lv0/userlist")
     public ResponseEntity<?> userListPaging(@RequestParam(value = "page", required = false) Integer page) {
         if (page != null) {
@@ -74,15 +76,12 @@ public class UserController {
 
             return new ResponseEntity<>(pageGsList, HttpStatus.OK);
         }
+    @GetMapping("/lv0/gsskill")
+    public ResponseEntity<?> getGoodseulBySkill(@RequestParam(value = "page", defaultValue = "0") Integer page, @RequestParam String skill){
+        Page<GoodseulDto> gsPage = userService.skillList(skill, page);
+        List<GoodseulDto> pageGsList = gsPage.getContent();
 
-
-    @GetMapping("/lv0/list")
-    public List<UserDto> List(){
-        return userService.userList();
-    }
-    @GetMapping("/lv0/goodseullist")
-    public List<GoodseulDto> goodseulList(){
-        return userService.goodseulList();
+        return new ResponseEntity<>(pageGsList, HttpStatus.OK);
     }
     @ResponseBody
     //비밀번호 변경
@@ -107,24 +106,35 @@ public class UserController {
     @ResponseBody
     //이메일 유효성 검사
     @PostMapping("/lv0/emailcheck")
-    public ResponseEntity<String> checkEmail(@RequestBody UserDto userDto){
+    public ResponseEntity<?> checkEmail(@RequestBody UserDto userDto){
         boolean emailcheck = userService.emailCheck(userDto);
         if(emailcheck){
-            return ResponseEntity.ok(userDto.getEmail());
+            return ResponseEntity.ok(true);
         }else{
-            return ResponseEntity.notFound().build(); // HTTP 400 Bad Request
+            return ResponseEntity.ok(false);
         }
     }
-    
+
+    //닉네임 유효성 검사
+    @PostMapping("/lv0/nicknamecheck")
+    public ResponseEntity<?> checknickname(@RequestBody UserDto userDto){
+        boolean nickcheck = userService.nicknameCheck(userDto);
+        if (nickcheck){
+            return ResponseEntity.ok(true);
+        }else{
+            return ResponseEntity.ok(false);
+        }
+    }
+
     //핸드폰 번호 유효성 검사
     @ResponseBody
     @PostMapping("/lv0/phonecheck")
-    public ResponseEntity<String> checkPhone(@RequestBody UserDto userDto){
+    public ResponseEntity<?> checkPhone(@RequestBody UserDto userDto){
         boolean phonecheck = userService.phoneCheck(userDto);
         if(phonecheck){
-            return ResponseEntity.ok(userDto.getPhoneNumber());
+            return ResponseEntity.ok(true);
         }else{
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.ok(false);
         }
     }
     
@@ -147,34 +157,38 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    //회원삭제
-    @DeleteMapping("/lv0/deleteuser/{idx}")
-    public String deleteUser(@PathVariable Long idx){
-        userService.deleteUser(idx);
-        return "회원삭제";
-    }
+//    //회원삭제
+//    @DeleteMapping("/lv0/deleteuser/{idx}")
+//    public String deleteUser(@PathVariable Long idx){
+//        userService.deleteUser(idx);
+//        return "회원삭제";
+//    }
 
     //회원 업데이트
-    @PutMapping("/lv1/user/{idx}")
-    public String updateUser(@PathVariable Long idx, @RequestBody UserDto userdto){
-        userService.updateUser(idx, userdto);
-        return "회원 업데이트 완료";
+    @PatchMapping ("/lv1/user")
+    public ResponseEntity<UserDto> updateUser(HttpServletRequest request, @RequestBody UserDto userdto){
+        userService.updateUser(request, userdto);
+        return new ResponseEntity<>(userdto,HttpStatus.OK);
+    }
+    
+    //구슬 업데이트
+    @PatchMapping("/lv1/goodseul")
+    public ResponseEntity<GoodseulDto> updateGoodseul(HttpServletRequest request, @RequestBody GoodseulDto goodseulDto){
+        userService.updateGoodseul(request, goodseulDto);
+        return new ResponseEntity<>(goodseulDto,HttpStatus.OK);
     }
 
-    @PutMapping("/lv1/Goodseul/{idx}")
-    public String updateGoodseul(@PathVariable Long idx, @RequestBody GoodseulDto goodseulDto){
-        userService.updateGoodseul(idx, goodseulDto);
-        return "구슬회원 업데이트 완료";
-    }
-
-    @PatchMapping("/lv1/profile/{idx}")
-    public ResponseEntity<String> updatePhoto(@PathVariable Long idx,@RequestBody MultipartFile upload) throws IOException {
+    //사진 업로드
+    @PatchMapping("/lv1/profile")
+    public ResponseEntity<String> updatePhoto(HttpServletRequest request, @RequestBody MultipartFile upload) throws IOException {
         String fileName;
         try{
-            fileName = userService.updatePhoto(idx, upload);
+            fileName = userService.updatePhoto(upload,request);
         }catch (IOException e){
             throw new IOException("오류류");
         }
         return ResponseEntity.ok(fileName);
     }
+
+
 }

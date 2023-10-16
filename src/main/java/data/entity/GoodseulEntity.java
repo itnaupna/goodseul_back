@@ -36,6 +36,9 @@ public class GoodseulEntity{
 
     private String goodseulProfile;
 
+    @Column(columnDefinition = "VARCHAR(500)")
+    private String goodseulInfo;
+
     @OneToMany(mappedBy = "isGoodseul")
     private List<UserEntity> users;
 }

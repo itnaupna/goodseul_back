@@ -45,14 +45,14 @@ public class JwtService {
     private static final String REFRESH_TOKEN_SUBJECT = "RefreshToken";
     private static final String IDX_CLAIM = "idx";
     private static final String NICKNAME_CLAIM = "nickname";
-    private static final String GOODSEULNAME_CLAIM = "goodseulName";
+    private static final String USERPROFILE_CLAIM = "userProfile";
     private static final String BEARER = "Bearer ";
 
     private final UserRepository userRepository;
 
     //AccessToken 생성 메소드
     //주어진 사용자 이메일을 기반으로 액세스 토큰을 생성하는 메소드이다. JWT 빌더를 사용하여 토큰을 생성하고, 토큰의 subject와 만료 시간을 설정
-    public String createAccessToken(long idx, String nickname) {
+    public String createAccessToken(long idx, String nickname, String userProfile) {
         Date now = new Date();
         return JWT.create() //JWT 토큰을 생성하는 빌더 반환
                 .withSubject(ACCESS_TOKEN_SUBJECT)//JWT의 Subject 지정 ->  AccessToken이므로 AccessToken
@@ -62,6 +62,7 @@ public class JwtService {
                 //추가할 경우 .withClaim(클래임 이름, 클래임 값)으로 설정해주면 됨
                 .withClaim(IDX_CLAIM, idx)
                 .withClaim(NICKNAME_CLAIM, nickname)
+                .withClaim(USERPROFILE_CLAIM, userProfile)
                 .sign(Algorithm.HMAC512(secretKey)); //HMAC512 알고리즘 사용, application-yml에서 지정한 secret 키로 암호화
     }
     //RefreshToken 생성
@@ -154,12 +155,12 @@ public class JwtService {
         }
     }
 
-    public Optional<String> extractGoodseulName(String accessToken){
+    public Optional<String> extractUserProfile(String accessToken){
         try{
             return Optional.ofNullable(JWT.require(Algorithm.HMAC512(secretKey))
                     .build()
                     .verify(accessToken)
-                    .getClaim(GOODSEULNAME_CLAIM)
+                    .getClaim(USERPROFILE_CLAIM)
                     .asString());
         }catch (Exception e){
             log.error("엑세스 토큰이 유효하지 않습니다");

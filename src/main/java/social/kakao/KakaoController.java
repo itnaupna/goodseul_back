@@ -106,8 +106,9 @@ public class KakaoController {
             UserEntity returnUser = optionalUser1.get();
             Long idx = returnUser.getIdx();
             String role = returnUser.getRole().toString();
-            String email = returnUser.getEmail();
-            String KakaoaccessToken = jwtService.createAccessToken(idx,email);
+            String nickname = returnUser.getNickname();
+            String userProfile = returnUser.getUserProfile();
+            String KakaoaccessToken = jwtService.createAccessToken(idx,nickname,userProfile);
             String KakaoRefreshToken = jwtService.createRefreshToken();
             HttpHeaders responseHeaders = new HttpHeaders();
             responseHeaders.add("Authorization", "Bearer " + KakaoaccessToken);

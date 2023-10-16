@@ -1,5 +1,6 @@
 package data.dto;
 
+import data.entity.BoardEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,5 +24,17 @@ public class BoardDto {
         this.subject = subject;
         this.tag = tag;
         this.writeDate = writeDate;
+    }
+
+    public static BoardDto toBoardDto(BoardEntity board){
+        return BoardDto.builder()
+                .idx(board.getIdx())
+                .subject(board.getSubject())
+                .content(board.getContent())
+                .nickname(board.getNickname())
+                .category(board.getCategory())
+                .tag(board.getTag())
+                .writeDate(board.getWriteDate())
+                .build();
     }
 }

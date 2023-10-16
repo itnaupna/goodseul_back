@@ -9,5 +9,5 @@ import java.util.List;
 @Repository
 public interface ChatRepository extends JpaRepository<ChatEntity,Integer> {
     List<ChatEntity> findAllByReceiverAndReadCheck(int receiver, boolean check);
-    List<ChatEntity> findAllBySenderAndReceiver(int sender, int receiver);
+    List<ChatEntity> findAllByRoomId(String roomId);
 }

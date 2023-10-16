@@ -161,19 +161,18 @@ public class AttendanceService {
     }
 
     private int getRandomPoint(int[] countPoint) {
-        Queue<Integer> queue = new LinkedList<>();
+        List<Integer> points = new ArrayList<>();
 
-        for(int i = 1; i <= 5 ; i++) {
-            for(int j = 0 ; j < countPoint[i-1]; j++) {
-                queue.add(5 * i);
+        for(int i = 1; i <= 5; i++) {
+            for(int j = 0; j < countPoint[i-1]; j++) {
+                points.add(5 * i);
             }
         }
 
-        for(int i = 0; i < new Random().nextInt(); i++) {
-            queue.add(queue.poll());
-        }
+        Collections.shuffle(points);
 
-        return queue.peek();
+        return points.get(0); // 셔플 후 첫 번째 요소 얻기
     }
+
 
 }

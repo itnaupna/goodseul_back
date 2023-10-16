@@ -130,6 +130,11 @@ public class AttendanceService {
             sb.append(a).append(" ");
         }
 
+        if (sb.charAt(sb.length()-1)==' '){
+            //마지막에 공백 삽입시 제거
+            sb.deleteCharAt(sb.length()-1);
+        }
+
         attendanceEntity.setAttendanceData(sb.toString());
         attendanceEntity.setLastAttendance(new Timestamp(System.currentTimeMillis()));
 

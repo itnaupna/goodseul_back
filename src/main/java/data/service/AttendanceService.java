@@ -1,6 +1,7 @@
 package data.service;
 
 import data.dto.AttendanceResponseDto;
+import data.dto.PointDto;
 import data.entity.AttendanceEntity;
 import data.entity.UserEntity;
 import data.repository.AttendanceRepository;
@@ -24,10 +25,13 @@ public class AttendanceService {
     private final JwtService jwtService;
     private final UserRepository userRepository;
 
-    public AttendanceService(AttendanceRepository attendanceRepository, JwtService jwtService, UserRepository userRepository) {
+    private final PointService pointService;
+
+    public AttendanceService(AttendanceRepository attendanceRepository, JwtService jwtService, UserRepository userRepository, PointService pointService) {
         this.attendanceRepository = attendanceRepository;
         this.jwtService = jwtService;
         this.userRepository = userRepository;
+        this.pointService = pointService;
     }
 
     public boolean checkAttendance(HttpServletRequest request) {
@@ -86,59 +90,69 @@ public class AttendanceService {
     }
 
     public int attend(int position, HttpServletRequest request) {
+        long userIdx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
+
         AttendanceEntity attendanceEntity = getAttendanceEntity(request);
         StringTokenizer st = new StringTokenizer(attendanceEntity.getAttendanceData());
-        int[] countPoint = {5,2,1,1,1};
+        int[] countPoint = {5, 2, 1, 1, 1};
 
         int[] point = new int[10];
+        int returnedPoint = -1;
 
-        for(int i = 0; i < 10; i++) {
+        for (int i = 0; i < 10; i++) {
             int checkPoint = Integer.parseInt(st.nextToken());
 
             switch (checkPoint) {
-                case 5 :
+                case 5:
                     countPoint[0]--;
                     break;
-                case 10 :
+                case 10:
                     countPoint[1]--;
                     break;
-                case 15 :
+                case 15:
                     countPoint[2]--;
                     break;
-                case 20 :
+                case 20:
                     countPoint[3]--;
                     break;
-                case 25 :
+                case 25:
                     countPoint[4]--;
                     break;
             }
 
             point[i] = checkPoint;
-            if(position == i) {
-                if(checkPoint != 0 ) {
+            if (position == i) {
+                if (checkPoint != 0) {
                     log.error("에러 발생 : 이미 선택된 위치 재 선택");
+                } else {
+                    returnedPoint = getRandomPoint(countPoint);
+                    log.info(Arrays.toString(point));
+                    point[position] = returnedPoint;
+                    StringBuilder sb = new StringBuilder();
+
+                    for (int a : point) {
+                        sb.append(a).append(" ");
+                    }
+
+                    if (sb.charAt(sb.length() - 1) == ' ') {
+                        //마지막에 공백 삽입시 제거
+                        sb.deleteCharAt(sb.length() - 1);
+                    }
+
+                    attendanceEntity.setAttendanceData(sb.toString());
+                    attendanceEntity.setLastAttendance(new Timestamp(System.currentTimeMillis()));
+
+                    attendanceRepository.save(attendanceEntity);
+
+                    PointDto pointDto = new PointDto();
+                    pointDto.setMember_idx((int) userIdx);
+                    pointDto.setPoint(returnedPoint);
+
+                    pointService.addPointEvent(pointDto);
                 }
             }
         }
 
-        int returnedPoint = getRandomPoint(countPoint);
-        log.info(Arrays.toString(point));
-        point[position] = returnedPoint;
-        StringBuilder sb = new StringBuilder();
-
-        for(int a : point) {
-            sb.append(a).append(" ");
-        }
-
-        if (sb.charAt(sb.length()-1)==' '){
-            //마지막에 공백 삽입시 제거
-            sb.deleteCharAt(sb.length()-1);
-        }
-
-        attendanceEntity.setAttendanceData(sb.toString());
-        attendanceEntity.setLastAttendance(new Timestamp(System.currentTimeMillis()));
-
-        attendanceRepository.save(attendanceEntity);
 
         return returnedPoint;
     }

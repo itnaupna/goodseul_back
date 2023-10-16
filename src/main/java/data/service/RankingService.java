@@ -1,25 +1,30 @@
 package data.service;
 
 import data.dto.RankResponseDto;
+import jwt.setting.settings.JwtService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
 @Service
 @Slf4j
 public class RankingService {
 
+    private final JwtService jwtService;
     private static final String RANKING_PREFIX = "game:ranking:";
     private final RedisTemplate<String, Object> redisTemplate;
 
-    public RankingService(RedisTemplate<String, Object> redisTemplate) {
+    public RankingService(JwtService jwtService, RedisTemplate<String, Object> redisTemplate) {
+        this.jwtService = jwtService;
         this.redisTemplate = redisTemplate;
     }
 
-    public void submitScoreWithHash(String gameId, String userId, double score) {
+    public void submitScoreWithHash(String gameId, double score, HttpServletRequest request) {
+        long userId = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
         // ZSet에 점수 저장
         redisTemplate.opsForZSet().add(RANKING_PREFIX + gameId, userId, score);
 
@@ -59,9 +64,21 @@ public class RankingService {
 //        return list;
 //    }
 
-    public List<RankResponseDto> getTopRankings(String gameId, String userIdx, int limit) {
-        Set<ZSetOperations.TypedTuple<Object>> rankings = redisTemplate.opsForZSet()
-                .reverseRangeWithScores(RANKING_PREFIX + gameId, 0, limit - 1);
+    public List<RankResponseDto> getTopRankings(String gameId, int limit, HttpServletRequest request, int orderBy) {
+        String userIdx = String.valueOf(jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get());
+
+        Set<ZSetOperations.TypedTuple<Object>> rankings;
+
+        // 기준에 따라 오름차순, 내림차순을 결정합니다.
+        if(orderBy == 1) {
+            // 오름차순(ASC) - 낮은 점수부터
+            rankings = redisTemplate.opsForZSet()
+                    .rangeWithScores(RANKING_PREFIX + gameId, 0, limit - 1);
+        } else {
+            // 내림차순(DESC) - 높은 점수부터
+            rankings = redisTemplate.opsForZSet()
+                    .reverseRangeWithScores(RANKING_PREFIX + gameId, 0, limit - 1);
+        }
 
         List<RankResponseDto> result = new ArrayList<>();
 
@@ -74,13 +91,14 @@ public class RankingService {
             // Hash에서 타임스탬프 조회
             long timestamp = Long.parseLong((String) redisTemplate.opsForHash().get(RANKING_PREFIX + gameId + ":timestamps", userId));
 
-            result.add(new RankResponseDto(userId,rank++, (int) score, timestamp));
+            result.add(new RankResponseDto(userId, rank++, (int) score, timestamp));
         }
 
-        result.add(getUserRanking(gameId,userIdx));
+        result.add(getUserRanking(gameId, userIdx,orderBy));
 
         return result;
     }
+
 
 
 //    public RankResponseDto getUserRankAndScore(String gameIdx, String UserIdx) {
@@ -101,8 +119,15 @@ public class RankingService {
 //        return dto;
 //    }
 
-    public RankResponseDto getUserRanking(String gameId, String userId) {
-        Long rank = redisTemplate.opsForZSet().reverseRank(RANKING_PREFIX + gameId, userId);
+    public RankResponseDto getUserRanking(String gameId, String userId, int orderBy) {
+        Long rank;
+        if (orderBy == 1) {
+            // 오름차순 랭킹: 낮은 점수부터
+            rank = redisTemplate.opsForZSet().rank(RANKING_PREFIX + gameId, userId);
+        } else {
+            // 내림차순 랭킹: 높은 점수부터 (기존 로직)
+            rank = redisTemplate.opsForZSet().reverseRank(RANKING_PREFIX + gameId, userId);
+        }
         Double score = redisTemplate.opsForZSet().score(RANKING_PREFIX + gameId, userId);
 
         // Hash에서 타임스탬프 조회
@@ -110,6 +135,7 @@ public class RankingService {
 
         return new RankResponseDto(userId, (int) (rank + 1), score.intValue(), timestamp);  // Redis의 rank는 0부터 시작하므로 1을 더함
     }
+
 
 
 

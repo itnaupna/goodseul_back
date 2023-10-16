@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @RestController
@@ -22,14 +23,14 @@ public class RankingController {
     }
 
     @PostMapping
-    public ResponseEntity<Void> submitScore(@RequestBody JsonNode jsonNode) {
-        rankingService.submitScoreWithHash(jsonNode.get("gameIdx").asText(),jsonNode.get("userIdx").asText(),jsonNode.get("score").asDouble());
+    public ResponseEntity<Void> submitScore(@RequestBody JsonNode jsonNode, HttpServletRequest request) {
+        rankingService.submitScoreWithHash(jsonNode.get("gameIdx").asText(),jsonNode.get("score").asDouble(),request);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @GetMapping
-    public ResponseEntity<List<RankResponseDto>> getRanking (String gameIdx, String userIdx) {
-        return new ResponseEntity<>(rankingService.getTopRankings(gameIdx,userIdx,10),HttpStatus.OK);
+    public ResponseEntity<List<RankResponseDto>> getRanking (String gameIdx, HttpServletRequest request, int orderBy) {
+        return new ResponseEntity<>(rankingService.getTopRankings(gameIdx,10, request, orderBy),HttpStatus.OK);
     }
 
 

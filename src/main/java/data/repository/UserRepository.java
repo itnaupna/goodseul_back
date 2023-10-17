@@ -36,6 +36,9 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
     void deleteAllByIdx(Long idx);
 
+    boolean existsByEmail(String email);
+    boolean existsByNickname(String nickname);
+    boolean existsByPhoneNumber(String phoneNumber);
 
 
 }

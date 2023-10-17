@@ -7,6 +7,7 @@ import data.entity.UserEntity;
 import data.repository.GoodseulRepository;
 import data.repository.UserRepository;
 import data.service.file.StorageService;
+import io.swagger.models.Contact;
 import jwt.setting.config.Role;
 
 import jwt.setting.settings.JwtService;
@@ -160,8 +161,8 @@ public class UserService {
     }
 
     //이메일 유효성 검사
-    public boolean emailCheck(UserDto userDto) {
-        Optional<UserEntity> userOptional = userRepository.findByEmail(userDto.getEmail());
+    public boolean emailCheck(String email) {
+        Optional<UserEntity> userOptional = userRepository.findByEmail(email);
         if (userOptional.isPresent()) {
             // 이메일이 데이터베이스에 존재하는 경우
             UserEntity user = userOptional.get();
@@ -172,8 +173,8 @@ public class UserService {
     }
 
     //닉네임 유효성 검사
-    public boolean nicknameCheck(UserDto userDto){
-        Optional<UserEntity> userOptional = userRepository.findByNickname(userDto.getNickname());
+    public boolean nicknameCheck(String nickname){
+        Optional<UserEntity> userOptional = userRepository.findByNickname(nickname);
         if(userOptional.isPresent()){
             //닉네임이 존재하면
             UserEntity user = userOptional.get();

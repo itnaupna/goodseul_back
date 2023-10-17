@@ -106,8 +106,8 @@ public class UserController {
     @ResponseBody
     //이메일 유효성 검사
     @PostMapping("/lv0/emailcheck")
-    public ResponseEntity<?> checkEmail(@RequestBody UserDto userDto){
-        boolean emailcheck = userService.emailCheck(userDto);
+    public ResponseEntity<?> checkEmail(@RequestBody String email){
+        boolean emailcheck = userService.emailCheck(email);
         if(emailcheck){
             return ResponseEntity.ok(true);
         }else{
@@ -117,8 +117,8 @@ public class UserController {
 
     //닉네임 유효성 검사
     @PostMapping("/lv0/nicknamecheck")
-    public ResponseEntity<?> checknickname(@RequestBody UserDto userDto){
-        boolean nickcheck = userService.nicknameCheck(userDto);
+    public ResponseEntity<?> checknickname(@RequestBody String nickname){
+        boolean nickcheck = userService.nicknameCheck(nickname);
         if (nickcheck){
             return ResponseEntity.ok(true);
         }else{

@@ -184,8 +184,8 @@ public class UserService {
         }
     }
     // 핸드폰 번호 유효성 검사
-    public boolean phoneCheck(UserDto userDto) {
-        Optional<UserEntity> userOptional = userRepository.findByPhoneNumber(userDto.getPhoneNumber());
+    public boolean phoneCheck(String phoneNumber) {
+        Optional<UserEntity> userOptional = userRepository.findByPhoneNumber(phoneNumber);
         if(userOptional.isPresent()){
             UserEntity user = userOptional.get();
             return true;

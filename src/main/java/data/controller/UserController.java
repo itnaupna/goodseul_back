@@ -129,8 +129,8 @@ public class UserController {
     //핸드폰 번호 유효성 검사
     @ResponseBody
     @PostMapping("/lv0/phonecheck")
-    public ResponseEntity<?> checkPhone(@RequestBody UserDto userDto){
-        boolean phonecheck = userService.phoneCheck(userDto);
+    public ResponseEntity<?> checkPhone(@RequestBody String phoneNumber){
+        boolean phonecheck = userService.phoneCheck(phoneNumber);
         if(phonecheck){
             return ResponseEntity.ok(true);
         }else{

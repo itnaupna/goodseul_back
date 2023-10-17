@@ -20,8 +20,8 @@ public class CommentEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idx;
 
-    @Column(columnDefinition = "TEXT", nullable = false)
-    private String comment;
+    @Column(columnDefinition = "TEXT", nullable = false, name="content")
+    private String content;
 
     @CreatedDate
     private String createDate;

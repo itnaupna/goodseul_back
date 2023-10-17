@@ -8,13 +8,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Optional;
+
 public interface BoardRepository extends JpaRepository<BoardEntity, Integer> {
 
-    @Query("SELECT new data.dto.BoardDto(b.subject, b.tag, b.writeDate) FROM BoardEntity b WHERE b.category = :category")
     Page<BoardDto> findBoardByCategory(@Param("category") String category, Pageable pageable);
 
     Page<BoardEntity> findByCategoryAndSubjectContaining(String category, String keyword, Pageable pageable);
-    BoardEntity findByIdx(Long idx);
+    Optional<BoardEntity> findByIdx(Long idx);
 
     void deleteAllByIdx(Long idx);
 

@@ -1,5 +1,6 @@
 package data.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import data.dto.GoodseulDto;
 import data.dto.SignUpDto;
 import data.dto.UserDto;
@@ -103,39 +104,24 @@ public class UserController {
         int randomNumber = Integer.parseInt(mailSendService.mailSend(email)); // 이메일 보내고 랜덤 번호를 가져옴
         return randomNumber;
     }
-    @ResponseBody
     //이메일 유효성 검사
     @PostMapping("/lv0/emailcheck")
-    public ResponseEntity<?> checkEmail(@RequestBody String email){
-        boolean emailcheck = userService.emailCheck(email);
-        if(emailcheck){
-            return ResponseEntity.ok(true);
-        }else{
-            return ResponseEntity.ok(false);
+    public boolean checkEmail(@RequestBody JsonNode jsonNode){
+        log.info(jsonNode.get("email").asText());
+        return userService.emailCheck(jsonNode.get("email").asText());
         }
-    }
+
 
     //닉네임 유효성 검사
     @PostMapping("/lv0/nicknamecheck")
-    public ResponseEntity<?> checknickname(@RequestBody String nickname){
-        boolean nickcheck = userService.nicknameCheck(nickname);
-        if (nickcheck){
-            return ResponseEntity.ok(true);
-        }else{
-            return ResponseEntity.ok(false);
-        }
+    public boolean checknickname(@RequestBody JsonNode jsonNode){
+        return userService.nicknameCheck(jsonNode.get("nickname").asText());
     }
 
     //핸드폰 번호 유효성 검사
-    @ResponseBody
     @PostMapping("/lv0/phonecheck")
-    public ResponseEntity<?> checkPhone(@RequestBody String phoneNumber){
-        boolean phonecheck = userService.phoneCheck(phoneNumber);
-        if(phonecheck){
-            return ResponseEntity.ok(true);
-        }else{
-            return ResponseEntity.ok(false);
-        }
+    public boolean checkPhone(@RequestBody JsonNode jsonNode){
+        return userService.phoneCheck(jsonNode.get("phoneNumber").asText());
     }
     
     //문자 인증번호 발송

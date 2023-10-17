@@ -28,8 +28,13 @@ public class RankingController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @GetMapping("/week")
+    public ResponseEntity<List<RankResponseDto>> getWeekRank (String gameIdx, HttpServletRequest request, int orderBy) {
+        return new ResponseEntity<>(rankingService.getWeekRankings(gameIdx,10, request, orderBy),HttpStatus.OK);
+    }
+
     @GetMapping
-    public ResponseEntity<List<RankResponseDto>> getRanking (String gameIdx, HttpServletRequest request, int orderBy) {
+    public ResponseEntity<List<RankResponseDto>> getAllRank(String gameIdx, HttpServletRequest request, int orderBy) {
         return new ResponseEntity<>(rankingService.getTopRankings(gameIdx,10, request, orderBy),HttpStatus.OK);
     }
 

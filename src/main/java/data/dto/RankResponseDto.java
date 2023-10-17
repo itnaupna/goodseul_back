@@ -11,7 +11,7 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 public class RankResponseDto {
 
-    private String userIdx;
+    private String nickname;
     private int rank;
     private double score;
     private long date;

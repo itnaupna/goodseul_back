@@ -99,7 +99,7 @@ public class UserController {
         return "변경";
     }
     //jwt test
-    @GetMapping("/lv1/check")
+    @GetMapping("/lv0/check")
     public String jwtTest(){
         return "check";
     }

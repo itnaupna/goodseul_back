@@ -36,7 +36,6 @@ public class GoodseulDto {
                 .career(entity.getCareer())
                 .isPremium(entity.getIsPremium())
                 .premiumDate(entity.getPremiumDate())
-                .goodseulProfile(entity.getGoodseulProfile())
                 .build();
     }
 }

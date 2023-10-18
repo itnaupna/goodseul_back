@@ -18,6 +18,7 @@ public class UserDto {
     private String phoneNumber;
     private String location;
     private String birth;
+    private String userProfile;
     private long isGoodseul;
 
     public static UserDto toUserDto (UserEntity entity) {

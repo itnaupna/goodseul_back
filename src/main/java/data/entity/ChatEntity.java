@@ -1,5 +1,6 @@
 package data.entity;
 
+import data.dto.ChatDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,8 +19,6 @@ public class ChatEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int chatIdx;
 
-    private String roomId;
-
     private int sender;
 
     private int receiver;
@@ -30,13 +29,16 @@ public class ChatEntity {
 
     private boolean readCheck;
 
+    private String roomId;
+
     @Builder
-    public ChatEntity (int sender, int receiver, String message, Timestamp sendTime) {
+    public ChatEntity (int sender, int receiver, String message, Timestamp sendTime, boolean readCheck,String roomId) {
         this.sender = sender;
         this.receiver = receiver;
         this.message = message;
         this.sendTime = sendTime;
+        this.readCheck = readCheck;
+        this.roomId = roomId;
     }
-
 
 }

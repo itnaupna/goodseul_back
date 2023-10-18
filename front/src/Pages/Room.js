@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./Room.css";
-import {json, useLocation, useParams} from "react-router-dom";
+import {Await, json, useLocation, useParams} from "react-router-dom";
 import * as StompJS from '@stomp/stompjs';
 import * as SockJS from 'sockjs-client';
 const Room = () => {
@@ -28,11 +28,12 @@ const Room = () => {
     };
     ws.connect({},(e) => {
       console.log("WebSocket connected: ", e); // 연결 로그
-      ws.subscribe("/sub/" + roomId, data => {
+       ws.subscribe("/sub/" + roomId, data => {
         console.log("Received message: ", data);
         console.log(JSON.parse(data.body));
         AddChat(data);
       });
+      enter(sendGetData.sender,sendGetData.receiver,"입장");
 
     }, (error) => {
       console.error("WebSocket connection error: ", error); // 에러 로그
@@ -47,16 +48,16 @@ const Room = () => {
       messageData,
     ]);
 
-    fetch("http://localhost:8080/api/lv1/chat/message", {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJBY2Nlc3NUb2tlbiIsIm5pY2tuYW1lIjoia2RrIiwiZXhwIjoxNjk2OTE1MDk0LCJpZHgiOjEzfQ.IHepwxU5J-Pro7r_0KpHiKX0DvUulIR7nROg0yDNFf4nPZozLd3hm1t1C1nkT3IKOBoiWM-mGoetBRYZdT4D4Q"
-      },
-      body: JSON.stringify({
-        sender: sendGetData.sender
-      })
-    })
+    // fetch("http://localhost:8080/api/lv1/chat/message", {
+    //   method: 'POST',
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJBY2Nlc3NUb2tlbiIsIm5pY2tuYW1lIjoia2RrIiwiZXhwIjoxNjk2OTE1MDk0LCJpZHgiOjEzfQ.IHepwxU5J-Pro7r_0KpHiKX0DvUulIR7nROg0yDNFf4nPZozLd3hm1t1C1nkT3IKOBoiWM-mGoetBRYZdT4D4Q"
+    //   },
+    //   body: JSON.stringify({
+    //     sender: sendGetData.sender
+    //   })
+    // })
 
   };
 
@@ -68,6 +69,16 @@ const Room = () => {
       message: message.current.value,
     }));
   };
+
+  const enter = (sender, receiver, message) => {
+    client.current.send("/pub/message", {}, JSON.stringify({
+      type : "ENTER",
+      sender,
+      receiver,
+      message,
+    }));
+  };
+
 
   return (
       <div>

@@ -17,12 +17,15 @@ public class GoodseulDto {
     private int isPremium;
     private Timestamp premiumDate;
     private String goodseulProfile;
+    private String goodseulInfo;
 
-    public GoodseulDto(Long idx, String goodseulName, String skill, String career) {
+    public GoodseulDto(Long idx, String goodseulName, String skill, String career, String goodseulProfile, String goodseulInfo) {
         this.idx = idx;
         this.goodseulName = goodseulName;
         this.skill = skill;
         this.career =career;
+        this.goodseulProfile = goodseulProfile;
+        this.goodseulInfo = goodseulInfo;
     }
   
     public static GoodseulDto toGoodseulDto (GoodseulEntity entity){
@@ -33,7 +36,6 @@ public class GoodseulDto {
                 .career(entity.getCareer())
                 .isPremium(entity.getIsPremium())
                 .premiumDate(entity.getPremiumDate())
-                .goodseulProfile(entity.getGoodseulProfile())
                 .build();
     }
 }

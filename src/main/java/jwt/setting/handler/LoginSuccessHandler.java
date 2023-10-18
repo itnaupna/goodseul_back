@@ -39,7 +39,8 @@ public class LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
         UserEntity user = userRepository.findByEmail(id).get();
         long idx = user .getIdx();
         String nickname = user .getNickname().toString();
-        String accessToken  = jwtService.createAccessToken(idx,nickname);// JwtService의 createAccessToken을 사용하여 AccessToken 발급
+        String userProfile = user.getUserProfile().toString();
+        String accessToken  = jwtService.createAccessToken(idx,nickname,userProfile);// JwtService의 createAccessToken을 사용하여 AccessToken 발급
         String refreshToken = jwtService.createRefreshToken(); // JwtService의 createRefreshToken을 사용하여 RefreshToken 발급
         jwtService.sendAccessAndRefreshToken(response,accessToken,refreshToken); // 응답 헤더에 AccessToken, RefreshToken 실어서 응답
 

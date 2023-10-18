@@ -40,7 +40,6 @@ public class PointController {
         return pointService.getTotalPoint(request);
     }
 
-
     // 적립
     @PostMapping
     public ResponseEntity<String> addPoint (@RequestBody PointDto dto, HttpServletRequest request) {

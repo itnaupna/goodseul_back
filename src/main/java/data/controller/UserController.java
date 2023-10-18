@@ -1,25 +1,27 @@
 package data.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import data.dto.GoodseulDto;
 import data.dto.GoodseulResponseDto;
 import data.dto.SignUpDto;
 import data.dto.UserDto;
-import data.entity.GoodseulEntity;
 import data.entity.UserEntity;
 import data.service.MailSendService;
 import data.service.OnlineUserService;
 import data.service.UserService;
+import data.service.file.StorageService;
 import jwt.setting.settings.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
-
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,19 +40,21 @@ public class UserController {
     private  final OnlineUserService onlineUserService;
 
     @ResponseBody
-    //회원가입
+    //일반 유저 회원가입
     @PostMapping("/lv0/user/sign-up")
     public String userSignUp(@RequestBody UserDto userDto) throws Exception{
         userService.signUp(userDto);
         return "회원가입 성공";
     }
-    @ResponseBody
-    @PostMapping("/lv0/goodseul/sign-up")
-    public String goodseulSignUp(@RequestBody SignUpDto requestDto)throws Exception{
-        userService.goodseulSignup(requestDto.getGoodseulDto(),requestDto.getUserDto());
+
+    //구슬님 회원가입
+    @PostMapping(value = "/lv0/goodseul/sign-up", consumes = "multipart/form-data")
+    public String goodseulSignUp( UserDto userDto, GoodseulDto goodseulDto, MultipartFile upload)throws Exception{
+        userService.goodseulSignup(goodseulDto,userDto, upload);
         return "회원가입 성공";
     }
 
+    //유저 리스트
     @GetMapping("/lv0/userlist")
     public ResponseEntity<?> userListPaging(@RequestParam(value = "page", required = false) Integer page) {
         if (page != null) {
@@ -75,15 +79,12 @@ public class UserController {
 
             return new ResponseEntity<>(pageGsList, HttpStatus.OK);
         }
+    @GetMapping("/lv0/gsskill")
+    public ResponseEntity<?> getGoodseulBySkill(@RequestParam(value = "page", defaultValue = "0") Integer page, @RequestParam String skill){
+        Page<GoodseulDto> gsPage = userService.skillList(skill, page);
+        List<GoodseulDto> pageGsList = gsPage.getContent();
 
-
-    @GetMapping("/lv0/list")
-    public List<UserDto> List(){
-        return userService.userList();
-    }
-    @GetMapping("/lv0/goodseullist")
-    public List<GoodseulDto> goodseulList(){
-        return userService.goodseulList();
+        return new ResponseEntity<>(pageGsList, HttpStatus.OK);
     }
     @ResponseBody
     //비밀번호 변경
@@ -93,7 +94,7 @@ public class UserController {
         return "변경";
     }
     //jwt test
-    @GetMapping("/jwt-test")
+    @GetMapping("/lv0/jwt-test")
     public String jwtTest(){
         return "jwtTest 요청 성공";
     }
@@ -105,28 +106,24 @@ public class UserController {
         int randomNumber = Integer.parseInt(mailSendService.mailSend(email)); // 이메일 보내고 랜덤 번호를 가져옴
         return randomNumber;
     }
-    @ResponseBody
     //이메일 유효성 검사
     @PostMapping("/lv0/emailcheck")
-    public ResponseEntity<String> checkEmail(@RequestBody UserDto userDto){
-        boolean emailcheck = userService.emailCheck(userDto);
-        if(emailcheck){
-            return ResponseEntity.ok(userDto.getEmail());
-        }else{
-            return ResponseEntity.notFound().build(); // HTTP 400 Bad Request
+    public boolean checkEmail(@RequestBody JsonNode jsonNode){
+        log.info(jsonNode.get("email").asText());
+        return userService.emailCheck(jsonNode.get("email").asText());
         }
+
+
+    //닉네임 유효성 검사
+    @PostMapping("/lv0/nicknamecheck")
+    public boolean checknickname(@RequestBody JsonNode jsonNode){
+        return userService.nicknameCheck(jsonNode.get("nickname").asText());
     }
-    
+
     //핸드폰 번호 유효성 검사
-    @ResponseBody
     @PostMapping("/lv0/phonecheck")
-    public ResponseEntity<String> checkPhone(@RequestBody UserDto userDto){
-        boolean phonecheck = userService.phoneCheck(userDto);
-        if(phonecheck){
-            return ResponseEntity.ok(userDto.getPhoneNumber());
-        }else{
-            return ResponseEntity.notFound().build();
-        }
+    public boolean checkPhone(@RequestBody JsonNode jsonNode){
+        return userService.phoneCheck(jsonNode.get("phoneNumber").asText());
     }
     
     //문자 인증번호 발송
@@ -157,16 +154,29 @@ public class UserController {
     }
 
     //회원 업데이트
-    @PutMapping("/lv0/updateuser/{idx}")
-    public String updateUser(@PathVariable Long idx, @RequestBody UserDto userdto){
-        userService.updateUser(idx, userdto);
-        return "회원 업데이트 완료";
+    @PatchMapping ("/lv1/user")
+    public ResponseEntity<UserDto> updateUser(HttpServletRequest request, @RequestBody UserDto userdto){
+        userService.updateUser(request, userdto);
+        return new ResponseEntity<>(userdto,HttpStatus.OK);
+    }
+    
+    //구슬 업데이트
+    @PatchMapping("/lv1/goodseul")
+    public ResponseEntity<GoodseulDto> updateGoodseul(HttpServletRequest request, @RequestBody GoodseulDto goodseulDto){
+        userService.updateGoodseul(request, goodseulDto);
+        return new ResponseEntity<>(goodseulDto,HttpStatus.OK);
     }
 
-    @PutMapping("/lv0/updategs/{idx}")
-    public String updateGoodseul(@PathVariable Long idx, @RequestBody GoodseulDto goodseulDto){
-        userService.updateGoodseul(idx, goodseulDto);
-        return "구슬회원 업데이트 완료";
+    //사진 업로드
+    @PatchMapping("/lv1/profile")
+    public ResponseEntity<String> updatePhoto(HttpServletRequest request, @RequestBody MultipartFile upload) throws IOException {
+        String fileName;
+        try{
+            fileName = userService.updatePhoto(upload,request);
+        }catch (IOException e){
+            throw new IOException("오류류");
+        }
+        return ResponseEntity.ok(fileName);
     }
 
     // 실시간 접속 구슬 유저
@@ -198,6 +208,5 @@ public class UserController {
         }
 
     }
-
 
 }

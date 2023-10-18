@@ -24,8 +24,9 @@ public class CouponDto {
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
     private Date end_date;
     private String cp_status;
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
-    private Timestamp create_date;
+    private int price;
+    private String image;
+    private String buyable;
 
     public static CouponDto toCouponDto(CouponEntity entity) {
 
@@ -38,7 +39,9 @@ public class CouponDto {
                 .start_date(entity.getStartDate())
                 .end_date(entity.getEndDate())
                 .cp_status(entity.getCpStatus())
-                .create_date(entity.getCreateDate())
+                .price(entity.getPrice())
+                .image(entity.getImage())
+                .buyable(entity.getBuyable())
                 .build();
     }
 

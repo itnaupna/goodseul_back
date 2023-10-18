@@ -21,7 +21,7 @@ public class UserCouponController {
     }
 
     @PostMapping
-    public ResponseEntity<UserCouponDto> insertCoupon(@RequestBody UserCouponDto dto, HttpServletRequest request) {
+    public ResponseEntity<Boolean> insertCoupon(@RequestBody UserCouponDto dto, HttpServletRequest request) {
         return new ResponseEntity<>(userCouponService.insertUserCoupon(dto, request), HttpStatus.OK);
     }
 

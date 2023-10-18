@@ -8,6 +8,8 @@ import data.repository.GoodseulRepository;
 import data.repository.UserRepository;
 import jwt.setting.config.Role;
 
+import jwt.setting.config.SocialType;
+import jwt.setting.handler.LoginSuccessHandler;
 import jwt.setting.settings.JwtService;
 import lombok.extern.slf4j.Slf4j;
 import net.nurigo.sdk.NurigoApp;
@@ -18,16 +20,17 @@ import net.nurigo.sdk.message.service.DefaultMessageService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
+import retrofit2.http.PUT;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import javax.persistence.EntityNotFoundException;
+import javax.servlet.http.HttpServletRequest;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -39,8 +42,8 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     private final JwtService jwtService;
-
     private final DefaultMessageService messageService;
+
 
     public UserService(UserRepository userRepository, GoodseulRepository goodseulRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
         this.userRepository = userRepository;
@@ -216,5 +219,50 @@ public class UserService {
     //구슬 업데이트
     public void updateGoodseul(Long idx, GoodseulDto goodseulDto){
         goodseulRepository.updateAllBy(idx,goodseulDto.getCareer(), goodseulDto.getSkill(),goodseulDto.getGoodseulName());
+    }
+    public String findByEmail (String name, String phone, String birth) {
+        Optional<UserEntity> email = userRepository.findByNameAndPhoneNumberAndBirth(name, phone, birth);
+        return email.map(UserEntity::getEmail)
+                .orElseThrow(EntityNotFoundException::new);
+    }
+
+    // 회원 탈퇴
+    public boolean signOut (HttpServletRequest request) {
+        long idx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
+        log.info(idx + "= idx");
+        try {
+            Optional<UserEntity> entity = userRepository.findById(idx);
+            if(entity.isPresent()) {
+                singOut(entity.get());
+
+                return true;
+            }
+        } catch (Exception e) {
+            log.info("탈퇴 실패" + e.getMessage());
+            return false;
+        }
+        return false;
+    }
+    private void singOut(UserEntity user) {
+        user.setEmail("");
+        user.setName(user.getName() + "(탈퇴)");
+        user.setPassword("");
+        user.setBirth("");
+        user.setLocation("");
+        user.setPhoneNumber("");
+        user.setRefreshToken("");
+        user.setSocialId("");
+
+        if(user.getIsGoodseul() != null) {
+            GoodseulEntity goodseul = goodseulRepository.findByIdx(user.getIsGoodseul().getIdx()).get();
+            goodseul.setCareer("");
+            goodseul.setGoodseulName(goodseul.getGoodseulName() + "(탈퇴)");
+            goodseul.setGoodseulProfile("");
+            goodseul.setIsPremium(null);
+            goodseul.setPremiumDate(null);
+            goodseul.setSkill("");
+        }
+
+        userRepository.save(user);
     }
 }

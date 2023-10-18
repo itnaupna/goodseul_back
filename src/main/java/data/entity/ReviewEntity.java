@@ -22,7 +22,6 @@ public class ReviewEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "r_idx")
-
     private Integer rIdx;
 
     @Column(nullable = false)

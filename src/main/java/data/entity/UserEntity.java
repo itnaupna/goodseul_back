@@ -36,6 +36,8 @@ public class UserEntity {
 
     private String phoneNumber;
 
+    private String userProfile="NoImage";
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "isGoodseul", referencedColumnName = "idx")
     private GoodseulEntity isGoodseul;
@@ -51,6 +53,7 @@ public class UserEntity {
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<OfferEntity> offers = new ArrayList<>();
 
+
     //유저 권한 설정 메소드
     public void authorizeUser() { //메소드 권한 설정
         this.role = Role.USER;
@@ -64,5 +67,8 @@ public class UserEntity {
         this.refreshToken = updateRefreshToken;
     }
 
-
+    public UserEntity (String name, String nickname) {
+        this.name = name;
+        this.nickname = nickname;
+    }
 }

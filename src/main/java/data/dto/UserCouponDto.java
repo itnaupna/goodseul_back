@@ -1,7 +1,6 @@
 package data.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import data.entity.CouponEntity;
 import data.entity.UserCouponEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,21 +15,21 @@ import java.sql.Timestamp;
 @Builder
 public class UserCouponDto {
     private int ucp_idx;
-    private String cp_number;
+    private String ucp_number;
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
-    private Timestamp create_date;
-    private int member_idx;
-    private String cp_status;
+    private Timestamp u_create_date;
+    private long member_idx;
+    private String ucp_status;
     private int cp_idx;
 
     public static UserCouponDto toUserCouponDto(UserCouponEntity entity) {
 
         return UserCouponDto.builder()
                 .ucp_idx(entity.getUcpIdx())
-                .cp_number(entity.getCpNumber())
-                .create_date(entity.getCreateDate())
-                .member_idx(entity.getMemberIdx())
-                .cp_status(entity.getCpStatus())
+                .ucp_number(entity.getCpNumber())
+                .u_create_date(entity.getUcpCreateDate())
+                .member_idx(entity.getUserEntity().getIdx())
+                .ucp_status(entity.getUcpStatus())
                 .cp_idx(entity.getCoupon().getCpIdx())
                 .build();
     }

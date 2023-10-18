@@ -11,29 +11,30 @@ import java.util.Map;
 
 @RestController
 @CrossOrigin
-@RequestMapping("/api")
+@RequestMapping("/api/lv0/coupon")
 public class CouponController {
     private final CouponService couponService;
     public CouponController(CouponService couponService) {
         this.couponService = couponService;
     }
 
-    @GetMapping("/coupon")
+    @GetMapping
     public ResponseEntity<Map<String, Object>> getPageCoupons (
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size,
             @RequestParam(defaultValue = "createDate") String sortProperty,
             @RequestParam(defaultValue = "DESC") String sortDirection,
-            @RequestParam(required = false) String keyword) {
+            @RequestParam(required = false) String keyword
+            ) {
         return new ResponseEntity<>(couponService.getPageCoupons(page, size, sortProperty, sortDirection, keyword), HttpStatus.OK);
     }
 
-    @PostMapping("/coupon")
+    @PostMapping
     public ResponseEntity<CouponDto> insertCoupon(@RequestBody CouponDto dto) {
         return new ResponseEntity<>(couponService.insertCoupon(dto), HttpStatus.OK);
     }
 
-    @PutMapping("/coupon/{cp_idx}")
+    @PutMapping("/{cp_idx}")
     public ResponseEntity<CouponDto> updateReview(@PathVariable int cp_idx, @RequestBody CouponDto dto){
         couponService.updateCoupon(cp_idx, dto);
         return new ResponseEntity<CouponDto>(HttpStatus.OK);

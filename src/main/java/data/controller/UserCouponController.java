@@ -7,9 +7,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import java.util.Map;
+
 @RestController
 @CrossOrigin
-@RequestMapping("/api")
+@RequestMapping("/api/lv1/usercoupon")
 public class UserCouponController {
 
     private final UserCouponService userCouponService;
@@ -17,9 +20,19 @@ public class UserCouponController {
         this.userCouponService = userCouponService;
     }
 
-    @PostMapping("/usercoupon")
-    public ResponseEntity<UserCouponDto> insertCoupon(@RequestBody UserCouponDto dto) {
-        return new ResponseEntity<>(userCouponService.insertUserCoupon(dto), HttpStatus.OK);
+    @PostMapping
+    public ResponseEntity<UserCouponDto> insertCoupon(@RequestBody UserCouponDto dto, HttpServletRequest request) {
+        return new ResponseEntity<>(userCouponService.insertUserCoupon(dto, request), HttpStatus.OK);
+    }
+
+    @GetMapping
+    public ResponseEntity<Map<String, Object>> getPageMyReview (
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "ucpCreateDate") String sortProperty,
+            @RequestParam(defaultValue = "DESC") String sortDirection,
+            HttpServletRequest request) {
+        return new ResponseEntity<>(userCouponService.getPageMyCoupon(page, size, sortProperty, sortDirection, request), HttpStatus.OK);
     }
 
 }

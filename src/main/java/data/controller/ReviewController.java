@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityNotFoundException;
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 
@@ -36,14 +37,14 @@ public class ReviewController {
         return new ResponseEntity<>(reviewService.getPageReview(page, size, sortProperty, sortDirection, keyword), HttpStatus.OK);
     }
 
-    @GetMapping("/lv1/mypage/review/{u_idx}")
+    @GetMapping("/lv1/mypage/review")
     public ResponseEntity<Map<String, Object>> getPageMyReview (
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size,
             @RequestParam(defaultValue = "rCreateDate") String sortProperty,
             @RequestParam(defaultValue = "DESC") String sortDirection,
-            @PathVariable Long u_idx) {
-        return new ResponseEntity<>(reviewService.getPageMyReview(page, size, sortProperty, sortDirection, u_idx), HttpStatus.OK);
+            HttpServletRequest request) {
+        return new ResponseEntity<>(reviewService.getPageMyReview(page, size, sortProperty, sortDirection, request), HttpStatus.OK);
     }
 
     @GetMapping("/lv0/review/{r_idx}")
@@ -92,6 +93,5 @@ public class ReviewController {
         }
 
     }
-
 
 }

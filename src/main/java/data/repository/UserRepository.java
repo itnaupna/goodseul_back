@@ -39,6 +39,5 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     @Modifying
     @Query("UPDATE UserEntity u SET u.name = :name, u.nickname = :nickname, u.phoneNumber = :phoneNumber WHERE u.idx = :idx")
     void updateAllBy(@Param("idx") Long idx, @Param("name") String name, @Param("nickname") String nickname, @Param("phoneNumber") String phoneNumber);
-
-
+    Optional<UserEntity> findByNameAndPhoneNumberAndBirth (String name, String phone, String birth);
 }

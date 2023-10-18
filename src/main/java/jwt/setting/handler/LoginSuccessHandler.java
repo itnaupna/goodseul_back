@@ -1,7 +1,11 @@
 package jwt.setting.handler;
 
+import data.entity.GoodseulEntity;
 import data.entity.UserEntity;
+import data.repository.GoodseulRepository;
 import data.repository.UserRepository;
+import data.service.OnlineUserService;
+import jwt.setting.config.Role;
 import jwt.setting.settings.JwtService;
 import lombok.RequiredArgsConstructor;
 
@@ -13,15 +17,20 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @RequiredArgsConstructor
 public class LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     private final JwtService jwtService;
     private final UserRepository userRepository;
+    private final OnlineUserService onlineUserService;
 
     @Value("${jwt.access.expiration}")
     private String accessTokenExpiration;
+
+    private Map<Long, UserEntity> onlineGoodsuleUsers = new ConcurrentHashMap<>();
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -39,8 +48,14 @@ public class LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
                 .ifPresent(userEntity -> {
                     userEntity.updateRefreshToken(refreshToken);
                     userRepository.saveAndFlush(userEntity);
+
+                    if(userEntity.getRole() == Role.GOODSEUL) {
+                        onlineUserService.addUser(userEntity);
+                        onlineUserService.logOnlineGoodsuleUsers();
+                    }
                 });
 
+//        logOnlineGoodsuleUsers();
         log.info("로그인에 성공하였습니다. 이메일 : {}", id);
         log.info("로그인에 성공하였습니다. AccessToken : {}",accessToken);
         log.info("re: "+ refreshToken);
@@ -50,6 +65,7 @@ public class LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         return userDetails.getUsername();
     }
+
 }
 
 

@@ -45,7 +45,8 @@ public class UserService {
 
     private final DefaultMessageService messageService;
     private final StorageService storageService;
-    private final String PATH="userprofile";
+    private final String USERPROFILE_PATH="userprofile";
+    private final String CAREER_PATH="career";
 
     public UserService(UserRepository userRepository, GoodseulRepository goodseulRepository, PasswordEncoder passwordEncoder, JwtService jwtService, StorageService storageService) {
         this.userRepository = userRepository;
@@ -80,7 +81,8 @@ public class UserService {
     }
 
     //구슬님 회원가입
-    public void goodseulSignup(GoodseulDto goodseulDto, UserDto userDto) throws Exception{
+    public void goodseulSignup(GoodseulDto goodseulDto, UserDto userDto, MultipartFile upload) throws Exception{
+        String fileName = storageService.saveFile(upload, CAREER_PATH);
         if (userRepository.findByEmail(userDto.getEmail()).isPresent()) {
             throw new Exception("이미 존재하는 이메일입니다");
         }
@@ -89,11 +91,10 @@ public class UserService {
         }
         GoodseulEntity goodseuls = GoodseulEntity.builder()
                 .skill(goodseulDto.getSkill())
-                .career(goodseulDto.getCareer())
+                .career(fileName)
                 .goodseulName(goodseulDto.getGoodseulName())
                 .isPremium(goodseulDto.getIsPremium())
                 .premiumDate(goodseulDto.getPremiumDate())
-                .goodseulProfile(goodseulDto.getGoodseulProfile())
                 .build();
         goodseulRepository.save(goodseuls);
         UserEntity user = UserEntity.builder()
@@ -237,7 +238,7 @@ public class UserService {
 
     //사용자 프로필 사진 업데이트
     public String updatePhoto(MultipartFile upload, HttpServletRequest request) throws IOException {
-        String fileName = storageService.saveFile(upload, PATH);
+        String fileName = storageService.saveFile(upload, USERPROFILE_PATH);
         Long idx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
         UserEntity user = userRepository.findByIdx(idx).get();
         user.setUserProfile(fileName);

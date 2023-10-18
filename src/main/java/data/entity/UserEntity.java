@@ -3,6 +3,7 @@ package data.entity;
 import jwt.setting.config.Role;
 import jwt.setting.config.SocialType;
 import lombok.*;
+import net.bytebuddy.implementation.bytecode.constant.DefaultValue;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.persistence.*;
@@ -36,7 +37,8 @@ public class UserEntity {
 
     private String phoneNumber;
 
-    private String userProfile="NoImage";
+    @Column(columnDefinition = "varchar(255) default 'NoImage'")
+    private String userProfile;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "isGoodseul", referencedColumnName = "idx")

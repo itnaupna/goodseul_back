@@ -144,7 +144,7 @@ public class PointService {
 
                 point -= deduction;
             }
-            return "A";
+            return "U";
         } catch (Exception e) {
             log.error("예외 발생: {}", e.getMessage());
             return "E";

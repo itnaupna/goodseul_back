@@ -31,6 +31,10 @@ public class UserCouponResponseDto {
     private Long member_idx;
     private String ucp_number;
     private String cp_description;
+    private Integer price;
+    private String image;
+    private String buyable;
+
 
     public UserCouponResponseDto(UserCouponEntity userCoupon) {
 
@@ -40,15 +44,14 @@ public class UserCouponResponseDto {
         this.member_idx = userCoupon.getUserEntity().getIdx();
         this.ucp_number = userCoupon.getCpNumber();
 
-
         CouponEntity coupon = userCoupon.getCoupon();
         this.cp_name = coupon.getCpName();
         this.cp_type = coupon.getCpType();
         this.start_date = coupon.getStartDate();
         this.end_date = coupon.getEndDate();
-        this.discount_amount = coupon.getDiscountAmount();
         this.cp_description = coupon.getCpDescription();
-
+        this.price = coupon.getPrice();
+        this.image = coupon.getBuyable();
 
     }
 

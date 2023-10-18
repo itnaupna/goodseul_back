@@ -34,26 +34,34 @@ public class CouponEntity {
     @Column(name = "discount_amount", nullable = false)
     private Integer discountAmount;
 
-    @Column(name = "start_date", nullable = false)
+    @Column(name = "start_date")
     private Date startDate;
 
-    @Column(name = "end_date", nullable = false)
+    @Column(name = "end_date")
     private Date endDate;
 
     @Column(name = "cp_status", columnDefinition = "VARCHAR(1) DEFAULT 'Y'", nullable = false, length = 1)
     private String cpStatus;
 
-    @CreationTimestamp
-    @Column(name = "create_date", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP", nullable = false)
-    private Timestamp createDate;
+    @Column(nullable = false)
+    private Integer price;
 
-    @OneToMany(mappedBy = "coupon", cascade = CascadeType.ALL)
-    private List<UserCouponEntity> userCoupons;
+    @Column
+    private String image;
+
+    @Column (columnDefinition = "VARCHAR(1) DEFAULT 'N'", nullable = false)
+    private String buyable;
+
+//    @OneToMany(mappedBy = "coupon", cascade = CascadeType.ALL)
+//    private List<UserCouponEntity> userCoupons;
 
     @PrePersist
     public void prePersist() {
         if (cpStatus == null) {
             this.cpStatus = "Y";
+        }
+        if(buyable == null) {
+            this.buyable = "N";
         }
     }
 
@@ -67,7 +75,9 @@ public class CouponEntity {
                 .startDate(dto.getStart_date())
                 .endDate(dto.getEnd_date())
                 .cpStatus(dto.getCp_status())
-                .createDate(dto.getCreate_date())
+                .price(dto.getPrice())
+                .image(dto.getImage())
+                .buyable(dto.getBuyable())
                 .build();
     }
 

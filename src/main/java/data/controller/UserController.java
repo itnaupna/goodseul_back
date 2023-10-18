@@ -47,8 +47,30 @@ public class UserController {
 
     //구슬님 회원가입
     @PostMapping(value = "/lv0/goodseul/sign-up", consumes = "multipart/form-data")
-    public String goodseulSignUp( UserDto userDto, GoodseulDto goodseulDto, MultipartFile upload)throws Exception{
-        userService.goodseulSignup(goodseulDto,userDto, upload);
+    public String goodseulSignUp(String email,
+                                 String name,
+                                 String nickname,
+                                 String password,
+                                 String phoneNumber,
+                                 String location,
+                                 String birth,
+                                 String goodseulName,
+                                 String skill,
+                                 List<MultipartFile> uploads
+    )throws Exception{
+        UserDto userDto = new UserDto();
+        GoodseulDto goodseulDto = new GoodseulDto();
+        userDto.setEmail(email);
+        userDto.setName(name);
+        userDto.setNickname(nickname);
+        userDto.setPassword(password);
+        userDto.setPhoneNumber(phoneNumber);
+        userDto.setLocation(location);
+        userDto.setBirth(birth);
+        goodseulDto.setGoodseulName(goodseulName);
+        goodseulDto.setSkill(skill);
+
+        userService.goodseulSignup(goodseulDto,userDto, uploads);
         return "회원가입 성공";
     }
 

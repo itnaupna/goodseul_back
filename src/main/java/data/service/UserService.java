@@ -86,17 +86,28 @@ public class UserService {
     }
 
     //구슬님 회원가입
-    public void goodseulSignup(GoodseulDto goodseulDto, UserDto userDto, MultipartFile upload) throws Exception{
-        String fileName = storageService.saveFile(upload, CAREER_PATH);
-        if (userRepository.findByEmail(userDto.getEmail()).isPresent()) {
+    public void goodseulSignup(GoodseulDto goodseulDto, UserDto userDto, List<MultipartFile> uploads) throws Exception{
+
+        StringBuilder sb = new StringBuilder();
+
+        for(MultipartFile upload : uploads) {
+            String fileName = storageService.saveFile(upload, CAREER_PATH);
+            sb.append(fileName).append(",");
+        }
+
+        log.info(userDto.getEmail());
+        log.info(userDto.getNickname());
+
+        if (userRepository.existsByEmail(userDto.getEmail())) {
             throw new Exception("이미 존재하는 이메일입니다");
         }
-        if (userRepository.findByNickname(userDto.getNickname()).isPresent()) {
+        if (userRepository.existsByNickname(userDto.getNickname())) {
             throw new Exception("이미 존재하는 닉네임입니다.");
         }
+
         GoodseulEntity goodseuls = GoodseulEntity.builder()
                 .skill(goodseulDto.getSkill())
-                .career(fileName)
+                .career(sb.substring(0,sb.length()-1))
                 .goodseulName(goodseulDto.getGoodseulName())
                 .isPremium(goodseulDto.getIsPremium())
                 .premiumDate(goodseulDto.getPremiumDate())

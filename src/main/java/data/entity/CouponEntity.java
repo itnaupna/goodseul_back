@@ -40,7 +40,7 @@ public class CouponEntity {
     @Column(name = "end_date", nullable = false)
     private Date endDate;
 
-    @Column(name = "cp_status", columnDefinition = "VARCHAR(1) DEFAULT 'N'", nullable = false, length = 1)
+    @Column(name = "cp_status", columnDefinition = "VARCHAR(1) DEFAULT 'Y'", nullable = false, length = 1)
     private String cpStatus;
 
     @CreationTimestamp
@@ -53,7 +53,7 @@ public class CouponEntity {
     @PrePersist
     public void prePersist() {
         if (cpStatus == null) {
-            this.cpStatus = "N";
+            this.cpStatus = "Y";
         }
     }
 

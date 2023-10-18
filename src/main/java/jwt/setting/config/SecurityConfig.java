@@ -4,8 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import data.oauth2.handler.OAuth2LoginFailureHandler;
 //import data.oauth2.handler.OAuth2LoginSuccessHandler;
 import data.oauth2.service.CustomOAuth2UserService;
+import data.repository.GoodseulRepository;
 import data.repository.UserRepository;
 import data.service.LoginService;
+import data.service.OnlineUserService;
+import data.service.UserService;
 import jwt.setting.filter.CustomJsonUsernamePasswordAuthenticationFilter;
 import jwt.setting.filter.JwtAuthenticationProcessingFilter;
 import jwt.setting.handler.LoginFailureHandler;
@@ -36,6 +39,7 @@ import java.util.Arrays;
 public class SecurityConfig {
     private final LoginService loginService;
     private final JwtService jwtService;
+    private final OnlineUserService onlineUserService;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
     //    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
@@ -103,7 +107,7 @@ public class SecurityConfig {
      */
     @Bean
     public LoginSuccessHandler loginSuccessHandler() {
-        return new LoginSuccessHandler(jwtService, userRepository);
+        return new LoginSuccessHandler(jwtService, userRepository, onlineUserService);
     }
 
     /**

@@ -22,8 +22,6 @@ import java.util.Optional;
 @Service
 @Slf4j
 public class CouponService {
-
-    @Autowired
     private final CouponRepository couponRepository;
 
     public CouponService(CouponRepository couponRepository) {
@@ -73,7 +71,7 @@ public class CouponService {
                 existingEntity.setStartDate(dto.getStart_date());
                 existingEntity.setEndDate(dto.getEnd_date());
                 existingEntity.setCpStatus(dto.getCp_status());
-                // Update the existing entity
+
                 couponRepository.save(existingEntity);
             }
         } catch (Exception e) {

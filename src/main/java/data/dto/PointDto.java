@@ -17,7 +17,7 @@ import java.sql.Timestamp;
 @Builder
 public class PointDto {
     private int point_idx;
-    private int member_idx;
+    private long member_idx;
     private String type;
     private int point;
     private String comment;
@@ -31,7 +31,7 @@ public class PointDto {
 
         return PointDto.builder()
                 .point_idx(entity.getPointIdx())
-                .member_idx(entity.getMemberIdx())
+                .member_idx(entity.getUserEntity().getIdx())
                 .type(entity.getType())
                 .point(entity.getPoint())
                 .comment(entity.getComment())

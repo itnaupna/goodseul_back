@@ -4,8 +4,11 @@ import data.dto.PointDto;
 import data.dto.PointHistoryDto;
 import data.entity.PointEntity;
 import data.entity.PointHistoryEntity;
+import data.entity.UserEntity;
 import data.repository.PointHistoryRepository;
 import data.repository.PointRepository;
+import data.repository.UserRepository;
+import jwt.setting.settings.JwtService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -15,9 +18,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 
+import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
-import java.sql.Timestamp;
 import java.util.*;
 
 @Service
@@ -25,15 +28,21 @@ import java.util.*;
 public class PointService {
     private final PointRepository pointRepository;
     private final PointHistoryRepository pointHistoryRepository;
+    private final UserRepository userRepository;
+    private  final JwtService jwtService;
     @Autowired
-    public PointService(PointRepository pointRepository, PointHistoryRepository pointHistoryRepository) {
+    public PointService(PointRepository pointRepository, PointHistoryRepository pointHistoryRepository, JwtService jwtService, UserRepository userRepository) {
         this.pointRepository = pointRepository;
         this.pointHistoryRepository = pointHistoryRepository;
+        this.jwtService = jwtService;
+        this.userRepository = userRepository;
     }
 
-    // 포인트 list
-    public Map<String, Object> getPagePoint (int memberIdx, Pageable pageRequest) {
-        Page<PointDto> result =  pointRepository.findByMemberIdx(memberIdx, pageRequest).map(PointDto::toPointDto);
+    // 포인트 이용 내역
+    public Map<String, Object> getPagePoint (HttpServletRequest request, Pageable pageRequest) {
+        long idx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
+
+        Page<PointDto> result =  pointRepository.findByUserEntity_idx(idx, pageRequest).map(PointDto::toPointDto);
 
         Map<String, Object> response = new HashMap<>();
         response.put("pointList", result.getContent() );
@@ -45,29 +54,35 @@ public class PointService {
         return response;
     }
 
-    public int getTotalPoint (int member_idx) {
-        return  pointHistoryRepository.findTotalPointsByMemberName(member_idx);
+    public int getTotalPoint (HttpServletRequest request) {
+        long idx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
+        log.info("idx = " + idx);
+        return  pointHistoryRepository.findTotalPointsByMemberIdx(idx);
     }
 
 
     // 포인트 적립 (A)
     @Transactional
-    public void addPointEvent(PointDto dto) {
-        int memberIdx = dto.getMember_idx();
+    public void addPointEvent(PointDto dto, HttpServletRequest request) {
+        long idx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
         int score = dto.getPoint();
+
+        // 사용자 정보 조회
+        UserEntity user = userRepository.findById(idx)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."));
 
         // point 추가
         PointEntity point = new PointEntity();
-        point.setMemberIdx(memberIdx);
+        point.setUserEntity(user);
         point.setPoint(score);
-        point.setComment("적립");
+        point.setComment(dto.getComment());
         point.setType("A");
 
         PointEntity savedPointEvent = pointRepository.save(point);
 
         // PointHistory 추가
         PointHistoryEntity pointHistory = new PointHistoryEntity();
-        pointHistory.setMemberIdx(memberIdx);
+        pointHistory.setUserEntity(user);
         pointHistory.setPoint(score);
         pointHistory.setType("적립");
         pointHistory.setOriginIdx(savedPointEvent.getPointIdx());
@@ -76,7 +91,7 @@ public class PointService {
         pointHistoryRepository.save(pointHistory);
     }
 
-    private void savePointHistory(int pointIdx, int memberIdx, int point, java.sql.Date expireDate, int originIdx) {
+    private void savePointHistory(int pointIdx, long memberIdx, int point, java.sql.Date expireDate, int originIdx) {
         PointHistoryDto pointHistory = new PointHistoryDto();
         pointHistory.setPoint_idx(pointIdx);
         pointHistory.setMember_idx(memberIdx);
@@ -88,10 +103,16 @@ public class PointService {
     }
     // 포인트 사용 (U)
     @Transactional
-    public String usePoint(int member_idx, int point, String comment) {
+    public String usePoint(HttpServletRequest request, int point, String comment) {
+        long idx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
         try {
+
+            // 사용자 정보 조회
+            UserEntity user = userRepository.findById(idx)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."));
+
             // 사용자의 잔여 포인트 조회
-            int totalPoint = pointHistoryRepository.findTotalPointsByMemberName(member_idx);
+            int totalPoint = pointHistoryRepository.findTotalPointsByMemberIdx(idx);
 
             // 잔여 포인트 부족
             if (totalPoint < point) {
@@ -99,16 +120,16 @@ public class PointService {
             }
             // 포인트 이벤트 생성 및 포인트 디테일 생성
             PointDto pointEvent = new PointDto();
-            pointEvent.setMember_idx(member_idx);
+            pointEvent.setMember_idx(idx);
             pointEvent.setType("U");
             pointEvent.setPoint(-point);
             pointEvent.setComment(comment);
 
-            PointEntity pointEntity = PointEntity.toPointEntity(pointEvent);
+            // PointEntity 생성 시 userEntity 설정
+            PointEntity pointEntity = PointEntity.toPointEntity(pointEvent, user);
             pointEntity = pointRepository.save(pointEntity);
-
             // 사용 가능한 포인트를 그룹별로 가져옴
-            List<Object[]> groupPoints = pointHistoryRepository.findNonZeroGroupedByPointId(member_idx);
+            List<Object[]> groupPoints = pointHistoryRepository.findNonZeroGroupedByPointId(idx);
 
             for (Object[] groupPoint : groupPoints) {
                 Integer pointId = (Integer) groupPoint[0];
@@ -119,7 +140,7 @@ public class PointService {
                     break;
 
                 int deduction = Math.min(availablePoints, point);
-                savePointHistory(pointId, member_idx, -deduction, expireDate, pointEntity.getPointIdx());
+                savePointHistory((Integer) pointId, idx, -deduction, expireDate, pointEntity.getPointIdx());
 
                 point -= deduction;
             }
@@ -135,7 +156,6 @@ public class PointService {
 
         Optional<PointEntity> optionalPointEvent = pointRepository.findById(pointIdx);
 
-        // 해당 pointIdx의 PointEntity가 없는 경우, 처리를 중단합니다.
         if (!optionalPointEvent.isPresent()) {
             log.info(optionalPointEvent + "포인트 테이블");
             return;
@@ -152,7 +172,8 @@ public class PointService {
         if ("U".equals(existingEvent.getType())) {
 
             PointEntity cancelEvent = new PointEntity();
-            cancelEvent.setMemberIdx(existingEvent.getMemberIdx());
+            UserEntity userEntity = existingEvent.getUserEntity(); // 수정된 부분
+            cancelEvent.setUserEntity(userEntity); // 수정된 부분
             cancelEvent.setType("C");
             cancelEvent.setPoint(Math.abs(existingEvent.getPoint())); // 절대값 반환
             cancelEvent.setComment("취소");
@@ -168,47 +189,47 @@ public class PointService {
                 cancelHistory.setExpireDate(history.getExpireDate());
                 cancelHistory.setOriginIdx(savedCancelEvent.getPointIdx());
                 cancelHistory.setType("취소");
-                cancelHistory.setMemberIdx(history.getMemberIdx());
+                cancelHistory.setUserEntity(userEntity);
                 pointHistoryRepository.save(cancelHistory);
-
             }
-
         }
 
     }
 
     // 유효 기간 만료 (E)
     @Transactional
-    public void expirePoint () {
+    public void expirePoint() {
         List<Object[]> pointExpire = pointHistoryRepository.findAllExpiredPoints();
 
-        if(pointExpire.size() <= 0) {
-            log.info("유효기간 만료된것이 없어용");
+        if (pointExpire.isEmpty()) {
+            log.info("유효기간 만료된 것이 없어용");
             return;
         }
 
-        for(Object[] expire : pointExpire) {
-
+        for (Object[] expire : pointExpire) {
             PointHistoryEntity expireEntity = (PointHistoryEntity) expire[0];
             int sumPoint = ((Number) expire[1]).intValue();
 
+            UserEntity userEntity = expireEntity.getUserEntity();
+
             PointEntity expirePoint = new PointEntity();
-            expirePoint.setMemberIdx(expireEntity.getMemberIdx());
+            expirePoint.setUserEntity(userEntity);
             expirePoint.setType("E");
             expirePoint.setPoint(-sumPoint);
             expirePoint.setComment("유효기간만료");
             pointRepository.save(expirePoint);
 
             PointHistoryEntity expireHistory = new PointHistoryEntity();
-            expireHistory.setMemberIdx(expireEntity.getMemberIdx());
+            expireHistory.setUserEntity(userEntity);
             expireHistory.setPoint(-sumPoint);
             expireHistory.setExpireDate(expireEntity.getExpireDate());
-            expireHistory.setOriginIdx(expireEntity.getOriginIdx());
+            expireHistory.setOriginIdx(expirePoint.getPointIdx());
             expireHistory.setPointEntity(expireEntity.getPointEntity());
             expireHistory.setType("유효기간만료");
             pointHistoryRepository.save(expireHistory);
         }
     }
+
 
 
 }

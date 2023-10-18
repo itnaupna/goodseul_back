@@ -9,19 +9,14 @@ import data.repository.GoodseulRepository;
 import data.repository.ReviewLikeRepository;
 import data.repository.ReviewRepository;
 import data.repository.UserRepository;
+import jwt.setting.settings.JwtService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.persistence.EntityNotFoundException;
+import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -33,13 +28,14 @@ public class ReviewService {
     private final GoodseulRepository goodseulRepository;
     private final UserRepository userRepository;
     private final ReviewLikeRepository reviewLikeRepository;
+    private final JwtService jwtService;
 
-    @Autowired
-    public ReviewService(ReviewRepository reviewRepository, GoodseulRepository goodseulRepository, UserRepository userRepository, ReviewLikeRepository reviewLikeRepository) {
+    public ReviewService(ReviewRepository reviewRepository, GoodseulRepository goodseulRepository, UserRepository userRepository, ReviewLikeRepository reviewLikeRepository, JwtService jwtService) {
         this.reviewRepository = reviewRepository;
         this.goodseulRepository = goodseulRepository;
         this.userRepository = userRepository;
         this.reviewLikeRepository = reviewLikeRepository;
+        this.jwtService = jwtService;
     }
 
     public Map<String, Object> getPageReview(int page, int size, String sortProperty, String sortDirection, String keyword) {
@@ -49,8 +45,10 @@ public class ReviewService {
 
         if (keyword != null && !keyword.trim().isEmpty()) {
             result = reviewRepository.findByGoodseulEntity_GoodseulNameContainingOrUserEntity_NameContaining(keyword, keyword, pageable);
-        } else {
+        } else if (keyword == null) {
             result = reviewRepository.findAll(pageable);
+        } else {
+            result = new PageImpl<>(Collections.emptyList());
         }
 
         List<ReviewResponseDto> reviewDtos = result.getContent().stream().map(review -> {
@@ -68,10 +66,11 @@ public class ReviewService {
         return response;
     }
 
-    public Map<String, Object> getPageMyReview(int page, int size, String sortProperty, String sortDirection, @PathVariable Long u_idx) {
+    public Map<String, Object> getPageMyReview(int page, int size, String sortProperty, String sortDirection, HttpServletRequest request) {
+        long idx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
         Sort.Direction direction = Sort.Direction.fromString(sortDirection);
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortProperty));
-        Page<ReviewEntity> result = reviewRepository.findByUserEntity_Idx(u_idx, pageable);
+        Page<ReviewEntity> result = reviewRepository.findByUserEntity_Idx(idx, pageable);
 
         List<ReviewResponseDto> reviewDtos = result.getContent().stream().map(review -> {
             Integer likeCount = reviewLikeRepository.countReviewLikeEntitiesByReviewEntity_rIdx(review.getRIdx());
@@ -121,15 +120,6 @@ public class ReviewService {
 
         return results.stream().map(result -> new ReviewResponseDto((ReviewEntity) result[0], ((Long) result[1]).intValue())).collect(Collectors.toList());
     }
-
-//    public List<ReviewResponseDto> findRandomPremiumReviews () {
-//        Pageable topFiveRandom = PageRequest.of(0, 5);
-//        List<Object[]> reults = reviewRepository.findRandomPremiumReviews(topFiveRandom);
-//        return reults.stream()
-//                .map(reult -> new ReviewResponseDto((ReviewEntity) reult[0], ((Long) reult[1]).intValue()))
-//                .collect(Collectors.toList());
-//
-//    }
 
     public List<ReviewResponseDto> findRandomPremiumReviews() {
         Pageable topFiveRandom = PageRequest.of(0, 5);

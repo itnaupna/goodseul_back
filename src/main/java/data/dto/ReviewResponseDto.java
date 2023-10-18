@@ -17,7 +17,7 @@ public class ReviewResponseDto {
     private String rType;
     private Timestamp rCreateDate;
 
-    // 구슬 정보 ( 사진도 필요함 )
+    // 구슬 정보
     private Long gIdx;
     private String goodseulName;
     private String skill;
@@ -48,11 +48,11 @@ public class ReviewResponseDto {
         this.goodseulName = goodseul.getGoodseulName();
         this.skill = goodseul.getSkill();
         this.isPremium = goodseul.getIsPremium();
-        this.goodseulProfile = goodseul.getGoodseulProfile();
 
         UserEntity user = review.getUserEntity();
         this.uIdx = user.getIdx();
         this.uNick = user.getNickname();
+        this.uProfile = user.getUserProfile();
 
         this.likeCount = likeCount;
         this.randSubject = randSubject;

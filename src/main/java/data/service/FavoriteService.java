@@ -8,6 +8,7 @@ import data.entity.UserEntity;
 import data.repository.FavoriteRepository;
 import data.repository.GoodseulRepository;
 import data.repository.UserRepository;
+import jwt.setting.settings.JwtService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -19,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,12 +34,14 @@ public class FavoriteService {
     public final FavoriteRepository favoriteRepository;
     private final UserRepository userRepository;
     private final GoodseulRepository goodseulRepository;
+    private final JwtService jwtService;
 
     @Autowired
-    public FavoriteService (FavoriteRepository favoriteRepository, UserRepository userRepository, GoodseulRepository goodseulRepository) {
+    public FavoriteService (FavoriteRepository favoriteRepository, UserRepository userRepository, GoodseulRepository goodseulRepository, JwtService jwtService) {
         this.favoriteRepository = favoriteRepository;
         this.userRepository = userRepository;
         this.goodseulRepository= goodseulRepository;
+        this.jwtService = jwtService;
     }
 
     public ResponseEntity<Object> insertFavorite (FavoriteDto dto) {
@@ -64,8 +68,10 @@ public class FavoriteService {
         }
     }
 
-    public ResponseEntity<Object> deleteFavorite (@PathVariable Long u_idx, @PathVariable Long g_idx) {
-        Optional<FavoriteEntity> favorite = favoriteRepository.findByUserEntity_idxAndGoodseulEntity_idx(u_idx, g_idx);
+    public ResponseEntity<Object> deleteFavorite (HttpServletRequest request, @PathVariable Long g_idx) {
+        long idx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
+
+        Optional<FavoriteEntity> favorite = favoriteRepository.findByUserEntity_idxAndGoodseulEntity_idx(idx, g_idx);
 
         if(favorite.isPresent()) {
             favoriteRepository.delete(favorite.get());
@@ -79,10 +85,11 @@ public class FavoriteService {
 
     }
 
-    public Map<String, Object> getPageFavorite (int page, int size, String sortProperty, String sortDirection, @PathVariable Long u_idx) {
+    public Map<String, Object> getPageFavorite (int page, int size, String sortProperty, String sortDirection, HttpServletRequest request) {
+        long idx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
         Sort.Direction direction = Sort.Direction.fromString(sortDirection);
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortProperty));
-        Page<FavoriteEntity> result = favoriteRepository.findByUserEntity_idx(u_idx, pageable);
+        Page<FavoriteEntity> result = favoriteRepository.findByUserEntity_idx(idx, pageable);
 
         List<FavoriteResponseDto> favoriteDto = result.getContent().stream().map(favorite -> {
             Integer favoriteCount = favoriteRepository.countFavoriteEntitiesByGoodseulEntity_idx(favorite.getGoodseulEntity().getIdx());

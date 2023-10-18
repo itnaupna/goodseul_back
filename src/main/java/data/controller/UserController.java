@@ -2,10 +2,12 @@ package data.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import data.dto.GoodseulDto;
+import data.dto.GoodseulResponseDto;
 import data.dto.SignUpDto;
 import data.dto.UserDto;
 import data.entity.UserEntity;
 import data.service.MailSendService;
+import data.service.OnlineUserService;
 import data.service.UserService;
 import data.service.file.StorageService;
 import jwt.setting.settings.JwtService;
@@ -16,9 +18,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
+import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
+import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,6 +37,7 @@ public class UserController {
     private final UserService userService;
     private final MailSendService mailSendService;
     private final JwtService jwtService;
+    private  final OnlineUserService onlineUserService;
 
     @ResponseBody
     //일반 유저 회원가입
@@ -138,16 +141,17 @@ public class UserController {
         Long idx = jwtService.extractIdx(accessToken).orElseThrow(() -> new RuntimeException("idx 추출 실패"));
 
         jwtService.logout(idx);
+        onlineUserService.removeUser(idx);
 
         return ResponseEntity.ok().build();
     }
 
-//    //회원삭제
-//    @DeleteMapping("/lv0/deleteuser/{idx}")
-//    public String deleteUser(@PathVariable Long idx){
-//        userService.deleteUser(idx);
-//        return "회원삭제";
-//    }
+    //회원탈퇴
+    @DeleteMapping("/lv0/deleteuser/{idx}")
+    public String deleteUser(@PathVariable Long idx){
+        userService.deleteUser(idx);
+        return "회원탈퇴";
+    }
 
     //회원 업데이트
     @PatchMapping ("/lv1/user")
@@ -175,5 +179,34 @@ public class UserController {
         return ResponseEntity.ok(fileName);
     }
 
+    // 실시간 접속 구슬 유저
+    @GetMapping("/lv0/online")
+    public ResponseEntity<List<GoodseulResponseDto>> getOnlineUsers() {
+        List<GoodseulResponseDto> onlineUsers = onlineUserService.getOnlineUsers();
+        return new ResponseEntity<>(onlineUsers, HttpStatus.OK);
+    }
+
+    // 아이디 찾기
+    @PostMapping("/lv0/find-id")
+    public ResponseEntity<String> findByEmail (@RequestParam String name, @RequestParam String phone, @RequestParam String birth) {
+        try {
+            String email = userService.findByEmail(name, phone, birth);
+            return new ResponseEntity<>(email, HttpStatus.OK);
+        } catch (EntityNotFoundException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+    }
+
+    // 회원 탈퇴
+    @PutMapping("/lv1/sign-out")
+    public ResponseEntity<String> signOut(HttpServletRequest request) {
+        boolean result = userService.signOut(request);
+        if(result) {
+            return new ResponseEntity<>("회원 탈퇴 성공", HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("회원 탈퇴 실패", HttpStatus.NOT_FOUND);
+        }
+
+    }
 
 }

@@ -2,21 +2,19 @@ package data.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import data.dto.GoodseulDto;
+import data.dto.GoodseulInfoDto;
 import data.dto.GoodseulResponseDto;
-import data.dto.SignUpDto;
 import data.dto.UserDto;
 import data.entity.UserEntity;
 import data.service.MailSendService;
 import data.service.OnlineUserService;
 import data.service.UserService;
-import data.service.file.StorageService;
 import jwt.setting.settings.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
@@ -86,17 +84,24 @@ public class UserController {
 
         return new ResponseEntity<>(pageGsList, HttpStatus.OK);
     }
-    @ResponseBody
+
+    // 구슬 단건 조회 API
+    @GetMapping("/lv1/gs")
+    public ResponseEntity<GoodseulInfoDto> getGoodseulInfo(@RequestParam long goodseulIdx) {
+        return new ResponseEntity<GoodseulInfoDto>(userService.getGoodseulInfo(goodseulIdx),HttpStatus.OK);
+    }
+
     //비밀번호 변경
+    @ResponseBody
     @PostMapping("/lv0/pwdupdate")
     public String pwdUpdate(@RequestBody UserDto userdto){
         userService.pwdUpdate(userdto.getEmail(), userdto.getPassword());
         return "변경";
     }
     //jwt test
-    @GetMapping("/lv0/jwt-test")
+    @GetMapping("/lv1/check")
     public String jwtTest(){
-        return "jwtTest 요청 성공";
+        return "check";
     }
 
     //이메일 인증번호 보내기
@@ -144,13 +149,6 @@ public class UserController {
         onlineUserService.removeUser(idx);
 
         return ResponseEntity.ok().build();
-    }
-
-    //회원탈퇴
-    @DeleteMapping("/lv0/deleteuser/{idx}")
-    public String deleteUser(@PathVariable Long idx){
-        userService.deleteUser(idx);
-        return "회원탈퇴";
     }
 
     //회원 업데이트
@@ -208,5 +206,6 @@ public class UserController {
         }
 
     }
+
 
 }

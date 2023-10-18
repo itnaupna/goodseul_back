@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
@@ -58,10 +59,12 @@ public class RankingService {
 
         if (shouldUpdateWeek) {
             redisTemplate.opsForZSet().add(WEEKLY_RANKING_PREFIX + gameId, userId, score);
+            redisTemplate.expire(WEEKLY_RANKING_PREFIX + gameId,7, TimeUnit.DAYS);
 
             // 새로운 점수가 저장되었으므로 타임스탬프도 갱신합니다.
             String hashKey = WEEKLY_RANKING_PREFIX + gameId + ":timestamps";
             redisTemplate.opsForHash().put(hashKey, userId, Long.toString(System.currentTimeMillis()));
+            redisTemplate.expire(hashKey,7, TimeUnit.DAYS);
         }
     }
 

@@ -94,8 +94,6 @@ public class AttendanceService {
         if(checkAttendance(request)) {
            return -1;
         } else {
-            long userIdx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
-
             AttendanceEntity attendanceEntity = getAttendanceEntity(request);
             StringTokenizer st = new StringTokenizer(attendanceEntity.getAttendanceData());
             int[] countPoint = {5, 2, 1, 1, 1};
@@ -149,10 +147,9 @@ public class AttendanceService {
                         attendanceRepository.save(attendanceEntity);
 
                         PointDto pointDto = new PointDto();
-                        pointDto.setMember_idx((int) userIdx);
                         pointDto.setPoint(returnedPoint);
 
-                        pointService.addPointEvent(pointDto);
+                        pointService.addPointEvent(pointDto,request);
                     }
                 }
             }

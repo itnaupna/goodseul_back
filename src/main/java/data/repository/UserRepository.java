@@ -36,6 +36,8 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
     void deleteAllByIdx(Long idx);
 
+    Optional<UserEntity> findByNameAndPhoneNumberAndBirth (String name, String phone, String birth);
+
     boolean existsByEmail(String email);
     boolean existsByNickname(String nickname);
     boolean existsByPhoneNumber(String phoneNumber);

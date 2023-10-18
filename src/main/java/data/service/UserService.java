@@ -1,6 +1,7 @@
 package data.service;
 
 import data.dto.GoodseulDto;
+import data.dto.GoodseulInfoDto;
 import data.dto.UserDto;
 import data.entity.GoodseulEntity;
 import data.entity.UserEntity;
@@ -49,7 +50,7 @@ public class UserService {
     private final JwtService jwtService;
     private final DefaultMessageService messageService;
     private final StorageService storageService;
-    private final String USERPROFILE_PATH="userprofile";
+    private final String USER_PROFILE_PATH="userprofile";
     private final String CAREER_PATH="career";
 
     public UserService(UserRepository userRepository, GoodseulRepository goodseulRepository, PasswordEncoder passwordEncoder, JwtService jwtService, StorageService storageService) {
@@ -201,6 +202,14 @@ public class UserService {
         return sb.toString();
     }
 
+    public GoodseulInfoDto getGoodseulInfo(long idx) {
+       GoodseulInfoDto goodseulInfoDto = new GoodseulInfoDto();
+       goodseulInfoDto.setUserDto(UserDto.toUserDto(userRepository.findByIdx(idx).get()));
+       goodseulInfoDto.setGoodseulDto(GoodseulDto.toGoodseulDto(goodseulRepository.findByIdx(goodseulInfoDto.getUserDto().getIsGoodseul()).get()));
+
+       return goodseulInfoDto;
+    }
+
 //    //회원 탈퇴
 //    public void deleteUser(Long idx){
 //        userRepository.deleteAllByIdx(idx);
@@ -231,7 +240,7 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("사용자 인덱스를 찾을 수 없습니다."));
         UserEntity user = userRepository.findByIdx(userIdx)
                 .orElseThrow(() -> new RuntimeException("사용자를 데이터베이스에서 찾을 수 없습니다."));
-        GoodseulEntity goodseul = goodseulRepository.findByIdx(user.getIsGoodseul().getIdx());
+        GoodseulEntity goodseul = goodseulRepository.findByIdx(user.getIsGoodseul().getIdx()).get();
         goodseul.setCareer(goodseulDto.getCareer());
         goodseul.setGoodseulName(goodseulDto.getGoodseulName());
         goodseul.setGoodseulInfo(goodseulDto.getGoodseulInfo());
@@ -288,7 +297,7 @@ public class UserService {
 
     //사용자 프로필 사진 업데이트
     public String updatePhoto(MultipartFile upload, HttpServletRequest request) throws IOException {
-        String fileName = storageService.saveFile(upload, USERPROFILE_PATH);
+        String fileName = storageService.saveFile(upload, USER_PROFILE_PATH);
         Long idx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
         UserEntity user = userRepository.findByIdx(idx).get();
         user.setUserProfile(fileName);

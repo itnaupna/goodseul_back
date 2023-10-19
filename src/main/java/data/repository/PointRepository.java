@@ -11,6 +11,6 @@ import java.util.List;
 
 @Repository
 public interface PointRepository extends JpaRepository<PointEntity, Integer> {
-    Page<PointEntity> findByMemberIdx(int memberIdx, Pageable pageable);
+    Page<PointEntity> findByUserEntity_idx(long idx, Pageable pageable);
 
 }

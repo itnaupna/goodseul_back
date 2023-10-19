@@ -20,7 +20,6 @@ const Lobby = () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJBY2Nlc3NUb2tlbiIsIm5pY2tuYW1lIjoia2RrIiwiZXhwIjoxNjk2OTE1MDk0LCJpZHgiOjEzfQ.IHepwxU5J-Pro7r_0KpHiKX0DvUulIR7nROg0yDNFf4nPZozLd3hm1t1C1nkT3IKOBoiWM-mGoetBRYZdT4D4Q"
                 },
                 body: JSON.stringify({
                     person1: name,

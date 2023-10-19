@@ -31,8 +31,9 @@ public class PointHistoryEntity {
     @JoinColumn(name = "point_idx", referencedColumnName = "point_idx")
     PointEntity pointEntity;
 
-    @Column(name = "member_idx",nullable = false)
-    private Integer memberIdx;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_idx", referencedColumnName = "idx",nullable = false)
+    UserEntity userEntity;
 
     @Column(name = "origin_idx", nullable = false)
     private Integer originIdx;
@@ -62,10 +63,13 @@ public class PointHistoryEntity {
         PointEntity pointEntity = new PointEntity();
         pointEntity.setPointIdx(dto.getPoint_idx());
 
+        UserEntity user = new UserEntity();
+        user.setIdx(dto.getMember_idx());
+
         return PointHistoryEntity.builder()
                 .historyIdx(dto.getHistory_idx())
                 .pointEntity(pointEntity)
-                .memberIdx(dto.getMember_idx())
+                .userEntity(user)
                 .originIdx(dto.getOrigin_idx())
                 .point(dto.getPoint())
                 .type(dto.getType())

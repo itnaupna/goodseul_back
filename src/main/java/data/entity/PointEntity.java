@@ -24,13 +24,9 @@ public class PointEntity {
     @Column(name = "point_idx")
     private Integer pointIdx;
 
-// user idx join 필요
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "member_idx", referencedColumnName = "idx", nullable = false)
-//    private UserEntity userEntity;
-
-    @Column(name = "member_idx", nullable = false)
-    private Integer memberIdx;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_idx", referencedColumnName = "idx", nullable = false)
+    private UserEntity userEntity;
 
     @Column(length = 1, nullable = false)
     private String type;
@@ -55,10 +51,10 @@ public class PointEntity {
             this.expireDate = Date.valueOf(LocalDate.now().plusDays(60));
         }
     }
-    public static PointEntity toPointEntity (PointDto dto) {
+    public static PointEntity toPointEntity (PointDto dto, UserEntity user) {
         return PointEntity.builder()
                 .pointIdx(dto.getPoint_idx())
-                .memberIdx(dto.getMember_idx())
+                .userEntity(user)
                 .type(dto.getType())
                 .point(dto.getPoint())
                 .comment(dto.getComment())

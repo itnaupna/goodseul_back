@@ -2,23 +2,23 @@ package data.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import data.dto.GoodseulDto;
-import data.dto.SignUpDto;
+import data.dto.GoodseulInfoDto;
+import data.dto.GoodseulResponseDto;
 import data.dto.UserDto;
 import data.entity.UserEntity;
 import data.service.MailSendService;
+import data.service.OnlineUserService;
 import data.service.UserService;
-import data.service.file.StorageService;
 import jwt.setting.settings.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
+import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
+import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,6 +35,7 @@ public class UserController {
     private final UserService userService;
     private final MailSendService mailSendService;
     private final JwtService jwtService;
+    private  final OnlineUserService onlineUserService;
 
     @ResponseBody
     //일반 유저 회원가입
@@ -46,8 +47,30 @@ public class UserController {
 
     //구슬님 회원가입
     @PostMapping(value = "/lv0/goodseul/sign-up", consumes = "multipart/form-data")
-    public String goodseulSignUp( UserDto userDto, GoodseulDto goodseulDto, MultipartFile upload)throws Exception{
-        userService.goodseulSignup(goodseulDto,userDto, upload);
+    public String goodseulSignUp(String email,
+                                 String name,
+                                 String nickname,
+                                 String password,
+                                 String phoneNumber,
+                                 String location,
+                                 String birth,
+                                 String goodseulName,
+                                 String skill,
+                                 List<MultipartFile> uploads
+    )throws Exception{
+        UserDto userDto = new UserDto();
+        GoodseulDto goodseulDto = new GoodseulDto();
+        userDto.setEmail(email);
+        userDto.setName(name);
+        userDto.setNickname(nickname);
+        userDto.setPassword(password);
+        userDto.setPhoneNumber(phoneNumber);
+        userDto.setLocation(location);
+        userDto.setBirth(birth);
+        goodseulDto.setGoodseulName(goodseulName);
+        goodseulDto.setSkill(skill);
+
+        userService.goodseulSignup(goodseulDto,userDto, uploads);
         return "회원가입 성공";
     }
 
@@ -85,7 +108,13 @@ public class UserController {
 
         return new ResponseEntity<>(pageGsList, HttpStatus.OK);
     }
-    @ResponseBody
+
+    // 구슬 단건 조회 API
+    @GetMapping("/lv1/gs")
+    public ResponseEntity<GoodseulInfoDto> getGoodseulInfo(@RequestParam long goodseulIdx) {
+        return new ResponseEntity<GoodseulInfoDto>(userService.getGoodseulInfo(goodseulIdx),HttpStatus.OK);
+    }
+
     //비밀번호 변경
     @PostMapping("/lv0/pwdupdate")
     public String pwdUpdate(String email, String password){
@@ -93,9 +122,9 @@ public class UserController {
         return "변경";
     }
     //jwt test
-    @GetMapping("/lv0/jwt-test")
+    @GetMapping("/lv0/check")
     public String jwtTest(){
-        return "jwtTest 요청 성공";
+        return "check";
     }
 
     //이메일 인증번호 보내기
@@ -140,6 +169,7 @@ public class UserController {
         Long idx = jwtService.extractIdx(accessToken).orElseThrow(() -> new RuntimeException("idx 추출 실패"));
 
         jwtService.logout(idx);
+        onlineUserService.removeUser(idx);
 
         return ResponseEntity.ok().build();
     }
@@ -186,6 +216,36 @@ public class UserController {
             throw new IOException("오류류");
         }
         return ResponseEntity.ok(fileName);
+    }
+
+    // 실시간 접속 구슬 유저
+    @GetMapping("/lv0/online")
+    public ResponseEntity<List<GoodseulResponseDto>> getOnlineUsers() {
+        List<GoodseulResponseDto> onlineUsers = onlineUserService.getOnlineUsers();
+        return new ResponseEntity<>(onlineUsers, HttpStatus.OK);
+    }
+
+    // 아이디 찾기
+    @PostMapping("/lv0/find-id")
+    public ResponseEntity<String> findByEmail (@RequestParam String name, @RequestParam String phone, @RequestParam String birth) {
+        try {
+            String email = userService.findByEmail(name, phone, birth);
+            return new ResponseEntity<>(email, HttpStatus.OK);
+        } catch (EntityNotFoundException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+    }
+
+    // 회원 탈퇴
+    @PutMapping("/lv1/sign-out")
+    public ResponseEntity<String> signOut(HttpServletRequest request) {
+        boolean result = userService.signOut(request);
+        if(result) {
+            return new ResponseEntity<>("회원 탈퇴 성공", HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("회원 탈퇴 실패", HttpStatus.NOT_FOUND);
+        }
+
     }
 
 

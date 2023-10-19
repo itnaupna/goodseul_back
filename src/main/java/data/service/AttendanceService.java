@@ -148,6 +148,7 @@ public class AttendanceService {
 
                         PointDto pointDto = new PointDto();
                         pointDto.setPoint(returnedPoint);
+                        pointDto.setComment("출석체크");
 
                         pointService.addPointEvent(pointDto,request);
                     }

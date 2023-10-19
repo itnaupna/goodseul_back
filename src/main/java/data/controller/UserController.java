@@ -1,10 +1,7 @@
 package data.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import data.dto.GoodseulDto;
-import data.dto.GoodseulInfoDto;
-import data.dto.GoodseulResponseDto;
-import data.dto.UserDto;
+import data.dto.*;
 import data.entity.UserEntity;
 import data.service.MailSendService;
 import data.service.OnlineUserService;
@@ -156,8 +153,8 @@ public class UserController {
     
     //문자 인증번호 발송
     @PostMapping("/lv0/sms")
-    public ResponseEntity<String> sendSms(String phoneNumber){
-        String authnum = userService.sendSms(phoneNumber);
+    public ResponseEntity<String> sendSms(@RequestBody JsonNode jsonNode){
+        String authnum = userService.sendSms(jsonNode.get("phoneNumber").asText());
         return ResponseEntity.ok(authnum);
     }
 
@@ -176,8 +173,8 @@ public class UserController {
 
     //3가지 유효성 검사
     @PostMapping("/lv0/check")
-    public ResponseEntity<String> allCheck(String email, String birth, String name) {
-        String phoneNumber = userService.allCheck(email, birth, name);
+    public ResponseEntity<String> allCheck(@RequestBody UserCheckDto userCheckDto) {
+        String phoneNumber = userService.allCheck(userCheckDto.getEmail(), userCheckDto.getBirth(), userCheckDto.getName());
         if (phoneNumber != null) {
             return ResponseEntity.ok(phoneNumber);
         }

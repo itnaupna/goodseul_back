@@ -164,10 +164,12 @@ public class UserService {
         return list;
     }
     //닉네임,이메일,전화번호 유효성 검사
-    public boolean allCheck(String email, String birth, String phoneNumber) {
-        return userRepository.existsByPhoneNumber(phoneNumber) &&
-                userRepository.existsByBirth(birth) &&
-                userRepository.existsByEmail(email);
+    public String allCheck(String email, String birth, String name) {
+        Optional<UserEntity> user = userRepository.findByEmailAndBirthAndName(email, birth, name);
+        if (user.isPresent()) {
+            return user.get().getPhoneNumber();
+        }
+        return "없습니다";
     }
 
     //비밀번호 변경

@@ -151,7 +151,7 @@ public class UserService {
 
     //목적별 리스트
     public Page<GoodseulDto> skillList(String skill, int page){
-        PageRequest pageable = PageRequest.of(page, 3, Sort.by(Sort.Direction.ASC,"idx"));
+        PageRequest pageable = PageRequest.of(page, 5, Sort.by(Sort.Direction.ASC,"idx"));
         return goodseulRepository.findGoodseulIdxBySkill(skill, pageable);
     }
 
@@ -162,6 +162,12 @@ public class UserService {
             list.add(GoodseulDto.toGoodseulDto(entity));
         }
         return list;
+    }
+    //닉네임,이메일,전화번호 유효성 검사
+    public boolean allCheck(String email, String birth, String phoneNumber) {
+        return userRepository.existsByPhoneNumber(phoneNumber) &&
+                userRepository.existsByBirth(birth) &&
+                userRepository.existsByEmail(email);
     }
 
     //비밀번호 변경
@@ -191,11 +197,16 @@ public class UserService {
     }
     
     //문자 인증번호 보내기
-    public String sendSms(@RequestBody UserDto dto) {
-        String authnum = generateRandomNumber(6);
+    public String sendSms(String phoneNumber) {
+        Optional<UserEntity> phoneNumberCheck = userRepository.findByPhoneNumber(phoneNumber);
+        if(!phoneNumberCheck.isPresent()){
+            return "없습니다";
+        }
+        phoneNumberCheck.get().setPhoneNumber(phoneNumber);
+        String authnum = generateRandomNumber(4);
         Message message = new Message();
         message.setFrom("01076331961");
-        message.setTo(dto.getPhoneNumber());
+        message.setTo(phoneNumber);
         message.setText("인증번호는 [" + authnum + "] 입니다");
         SingleMessageSentResponse response = this.messageService.sendOne(new SingleMessageSendingRequest(message));
         return authnum;

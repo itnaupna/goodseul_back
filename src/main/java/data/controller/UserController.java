@@ -93,14 +93,16 @@ public class UserController {
 
     //구슬님 지역별 조회
     @GetMapping("/lv0/gslocation")
-    public ResponseEntity<?> getGoodseulIdxByLocation(@RequestParam(value = "page", defaultValue = "0") Integer page, @RequestParam String location) {
+    public ResponseEntity<?> getGoodseulIdxByLocation(@RequestParam(value = "page", defaultValue = "0") Integer page,
+                                                      @RequestParam(value = "location", defaultValue = "서울") String location) {
             Page<GoodseulDto> gsPage = userService.goodseulPaging(location, page);
             List<GoodseulDto> pageGsList = gsPage.getContent();
 
             return new ResponseEntity<>(pageGsList, HttpStatus.OK);
         }
     @GetMapping("/lv0/gsskill")
-    public ResponseEntity<?> getGoodseulBySkill(@RequestParam(value = "page", defaultValue = "0") Integer page, @RequestParam String skill){
+    public ResponseEntity<?> getGoodseulBySkill(@RequestParam(value = "page", defaultValue = "0") Integer page,
+                                                @RequestParam String skill){
         Page<GoodseulDto> gsPage = userService.skillList(skill, page);
         List<GoodseulDto> pageGsList = gsPage.getContent();
 
@@ -114,10 +116,9 @@ public class UserController {
     }
 
     //비밀번호 변경
-    @ResponseBody
     @PostMapping("/lv0/pwdupdate")
-    public String pwdUpdate(@RequestBody UserDto userdto){
-        userService.pwdUpdate(userdto.getEmail(), userdto.getPassword());
+    public String pwdUpdate(String email, String password){
+        userService.pwdUpdate(email, password);
         return "변경";
     }
     //jwt test
@@ -155,9 +156,9 @@ public class UserController {
     
     //문자 인증번호 발송
     @PostMapping("/lv0/sms")
-    public String sendSms(@RequestBody UserDto userdto){
-        String authnum = userService.sendSms(userdto);
-        return authnum;
+    public ResponseEntity<String> sendSms(String phoneNumber){
+        String authnum = userService.sendSms(phoneNumber);
+        return ResponseEntity.ok(authnum);
     }
 
     @PostMapping("/lv0/logout")
@@ -172,6 +173,24 @@ public class UserController {
 
         return ResponseEntity.ok().build();
     }
+
+//    //회원삭제
+//    @DeleteMapping("/lv0/deleteuser/{idx}")
+//    public String deleteUser(@PathVariable Long idx){
+//        userService.deleteUser(idx);
+//        return "회원삭제";
+//    }
+
+    //3가지 유효성 검사
+    @PostMapping("/lv0/check")
+    public ResponseEntity<String> allCheck(String email, String birth, String phoneNumber) {
+        if (userService.allCheck(email, birth, phoneNumber)) {
+            return ResponseEntity.ok(phoneNumber);
+        }
+        return ResponseEntity.badRequest().body("Check failed");
+    }
+
+
 
     //회원 업데이트
     @PatchMapping ("/lv1/user")

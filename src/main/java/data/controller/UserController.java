@@ -174,22 +174,15 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-//    //회원삭제
-//    @DeleteMapping("/lv0/deleteuser/{idx}")
-//    public String deleteUser(@PathVariable Long idx){
-//        userService.deleteUser(idx);
-//        return "회원삭제";
-//    }
-
     //3가지 유효성 검사
     @PostMapping("/lv0/check")
-    public ResponseEntity<String> allCheck(String email, String birth, String phoneNumber) {
-        if (userService.allCheck(email, birth, phoneNumber)) {
+    public ResponseEntity<String> allCheck(String email, String birth, String name) {
+        String phoneNumber = userService.allCheck(email, birth, name);
+        if (phoneNumber != null) {
             return ResponseEntity.ok(phoneNumber);
         }
         return ResponseEntity.badRequest().body("Check failed");
     }
-
 
 
     //회원 업데이트

@@ -52,9 +52,6 @@ public class CouponEntity {
     @Column (columnDefinition = "VARCHAR(1) DEFAULT 'N'", nullable = false)
     private String buyable;
 
-//    @OneToMany(mappedBy = "coupon", cascade = CascadeType.ALL)
-//    private List<UserCouponEntity> userCoupons;
-
     @PrePersist
     public void prePersist() {
         if (cpStatus == null) {

@@ -1,6 +1,8 @@
 package data.dto;
 
 import data.entity.FavoriteEntity;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,9 +12,13 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Data
 @Builder
+@ApiModel(description = "찜목록 DTO")
 public class FavoriteDto {
+    @ApiModelProperty(value = "favorite idx", required = false)
     private int f_idx;
+    @ApiModelProperty(value = "구슬 idx", required = true)
     private Long u_idx;
+    @ApiModelProperty(value = "유저 idx", required = false)
     private Long g_idx;
     public static FavoriteDto toFavoriteDto(FavoriteEntity entity) {
         return FavoriteDto.builder()

@@ -16,6 +16,9 @@ public class FavoriteResponseDto {
     private Long u_idx;
     private Long g_idx;
     private int favoriteCount;
+    private String profile;
+    private String g_name;
+    private String u_name;
 
     public FavoriteResponseDto(FavoriteEntity favorite, Integer favoriteCount){
         this.f_idx = favorite.getFIdx();
@@ -23,9 +26,12 @@ public class FavoriteResponseDto {
 
         GoodseulEntity goodseul = favorite.getGoodseulEntity();
         this.g_idx = goodseul.getIdx();
+        this.g_name = goodseul.getGoodseulName();
 
         UserEntity user = favorite.getUserEntity();
         this.u_idx = user.getIdx();
+        this.u_name = user.getName();
+        this.profile = user.getUserProfile();
 
     }
 }

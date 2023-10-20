@@ -254,12 +254,24 @@ public class UserController {
         return ResponseEntity.ok(fileName);
     }
 
-    // 실시간 접속 구슬 유저
     @GetMapping("/lv0/online")
-    @ApiOperation(value = "실시간 접속 구슬 유저 조회 API", notes = "현재 실시간으로 접속 중인 구슬 유저 목록을 반환합니다.")
+    @ApiOperation(value = "실시간 접속 전체 구슬 유저 조회 API", notes = "현재 실시간으로 접속 중인 구슬 유저 목록 전체 중 랜덤 6명을 반환합니다.")
     public ResponseEntity<List<GoodseulResponseDto>> getOnlineUsers() {
         List<GoodseulResponseDto> onlineUsers = onlineUserService.getOnlineUsers();
         return new ResponseEntity<>(onlineUsers, HttpStatus.OK);
+    }
+    @GetMapping("/lv0/online-premium")
+    @ApiOperation(value = "실시간 접속 isPremium 구슬 유저 조회 API", notes = "현재 실시간으로 접속 중인 구슬 중 isPremium가 1인 랜덤 6명을 반환합니다.")
+    public ResponseEntity<List<GoodseulResponseDto>> getOnlinePremiumUsers() {
+        List<GoodseulResponseDto> onlinePremiumUsers = onlineUserService.getOnlinePremiumUsers();
+        return new ResponseEntity<>(onlinePremiumUsers, HttpStatus.OK);
+    }
+
+    @GetMapping("/lv0/online-favorite")
+    @ApiOperation(value = "실시간 접속  구슬 유저 favorite 순 조회 API", notes = "현재 실시간으로 접속 중인 구슬 중 favorite 높은 순으로 반환합니다.")
+    public ResponseEntity<List<GoodseulResponseDto>> getOnlineFavoriteUsers() {
+        List<GoodseulResponseDto> onlinePremiumUsers = onlineUserService.getOnlineFavoriteUsers();
+        return new ResponseEntity<>(onlinePremiumUsers, HttpStatus.OK);
     }
 
     // 아이디 찾기

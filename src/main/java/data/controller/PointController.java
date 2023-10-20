@@ -2,6 +2,9 @@ package data.controller;
 
 import data.dto.PointDto;
 import data.service.PointService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -14,6 +17,7 @@ import java.util.Map;
 
 @RestController
 @CrossOrigin
+@Api(value = "포인트 관리", description = "Point Controller", tags = "포인트 API")
 @RequestMapping("/api/lv1/point")
 public class PointController {
 
@@ -26,23 +30,23 @@ public class PointController {
 
     // 적립 내역
     @GetMapping
-    public ResponseEntity<Map<String, Object>> getPointPage(@RequestParam(defaultValue = "0") int page,
-                                                            @RequestParam(defaultValue = "10") int size,
-                                                            HttpServletRequest request) {
+    public ResponseEntity<Map<String, Object>> getPointPage(@ApiParam(value = "페이지 번호", defaultValue = "0") @RequestParam(defaultValue = "0") int page,
+                                                            @ApiParam(value = "페이지 당 보여지는 갯수", defaultValue = "10") @RequestParam(defaultValue = "10") int size,
+                                                              HttpServletRequest request) {
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by("pointIdx").descending());
         return new ResponseEntity<>(pointService.getPagePoint(request, pageRequest), HttpStatus.OK);
 
     }
 
-    // 총 포인트
+    @ApiOperation(value = "총 포인트 조회")
     @GetMapping("/total")
     public int getTotalPoint (HttpServletRequest request) {
         return pointService.getTotalPoint(request);
     }
 
-    // 적립
+    @ApiOperation(value = "적립")
     @PostMapping
-    public ResponseEntity<String> addPoint (@RequestBody PointDto dto, HttpServletRequest request) {
+    public ResponseEntity<String> addPoint (@ApiParam(value = "포인트 DTO") @RequestBody PointDto dto, HttpServletRequest request) {
         try {
             pointService.addPointEvent(dto, request);
             return ResponseEntity.ok("적립 완료");
@@ -51,15 +55,15 @@ public class PointController {
         }
     }
 
-    // 사용
+    @ApiOperation(value = "사용")
     @PostMapping("/use")
-    public String usePoint(@RequestBody PointDto dto, HttpServletRequest request) {
+    public String usePoint(@ApiParam(value = "포인트 DTO") @RequestBody PointDto dto, HttpServletRequest request) {
         return pointService.usePoint(request, dto.getPoint(), dto.getComment());
     }
 
-    // 취소
+    @ApiOperation(value = "포인트 사용 취소")
     @PostMapping("/cancel")
-    public ResponseEntity<String> cancelPointUse(@RequestParam int pointIdx) {
+    public ResponseEntity<String> cancelPointUse(@ApiParam(value = "포인트 idx") @RequestParam int pointIdx) {
         try {
             pointService.cancelPointUse(pointIdx);
             return ResponseEntity.ok("사용 취소 완료");
@@ -68,7 +72,7 @@ public class PointController {
         }
     }
 
-    // 만료
+    @ApiOperation(value = "포인트 만료")
     @PostMapping("/expire")
     public ResponseEntity<String> expirePoint () {
         try {

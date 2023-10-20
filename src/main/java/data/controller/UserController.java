@@ -222,7 +222,7 @@ public class UserController {
             String email = userService.findByEmail(name, phone, birth);
             return new ResponseEntity<>(email, HttpStatus.OK);
         } catch (EntityNotFoundException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NO_CONTENT);
         }
     }
 

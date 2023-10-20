@@ -24,8 +24,7 @@ public class OnlineUserService {
     private final FavoriteRepository favoriteRepository;
 
     private final Map<Long, UserEntity> onlineGoodsuleUsers = new ConcurrentHashMap<>();
-    private final Map<Long, UserEntity> onlineGoodsuleIsPremium = new ConcurrentHashMap<>();
-    private final Map<Long, UserEntity> OnlineGoodsuleFavorite = new ConcurrentHashMap<>();
+
     public OnlineUserService(UserRepository userRepository, GoodseulRepository goodseulRepository, UserRepository userRepository1, FavoriteRepository favoriteRepository) {
         this.goodseulRepository = goodseulRepository;
         this.userRepository = userRepository1;
@@ -38,12 +37,6 @@ public class OnlineUserService {
         }
     }
 
-    public void addPremiumUser(UserEntity userEntity) {
-        if (userEntity != null && userEntity.getRole() == Role.GOODSEUL && userEntity.getIsGoodseul().getIsPremium() > 0) {
-            onlineGoodsuleIsPremium.put(userEntity.getIdx(), userEntity);
-        }
-    }
-
     public void removeUser(Long idx) {
         UserEntity userEntity = userRepository.findById(idx).orElseThrow(() -> new RuntimeException("유저를 찾을 수 없음"));
         logOnlineGoodsuleUsers();
@@ -51,10 +44,6 @@ public class OnlineUserService {
             onlineGoodsuleUsers.remove(idx);
             logOnlineGoodsuleFavorite();
             logOnlineGoodsuleUsers();
-        }
-        if (userEntity.getRole() == Role.GOODSEUL && userEntity.getIsGoodseul().getIsPremium() > 0) {
-            onlineGoodsuleIsPremium.remove(idx);
-            logOnlineGoodsulePremium();
         }
     }
 
@@ -79,16 +68,17 @@ public class OnlineUserService {
     public List<GoodseulResponseDto> getOnlinePremiumUsers() {
         List<GoodseulResponseDto> list = new ArrayList<>();
 
-        for (Map.Entry<Long, UserEntity> entry : onlineGoodsuleIsPremium.entrySet()) {
-            Long userId = entry.getKey();
+        for (Map.Entry<Long, UserEntity> entry : onlineGoodsuleUsers.entrySet()) {
             UserEntity user = entry.getValue();
-            Optional<GoodseulEntity> goodseul = goodseulRepository.findByIdx(user.getIsGoodseul().getIdx());
-            if(goodseul.isPresent()) {
-                GoodseulEntity goodseulEntity = goodseul.get();
-                int favoriteCount = favoriteRepository.countFavoriteEntitiesByGoodseulEntity_idx(goodseulEntity.getIdx());
-                list.add(new GoodseulResponseDto(goodseulEntity.getIdx(), goodseulEntity.getGoodseulName(), user.getUserProfile(), user.getIsGoodseul().getIsPremium(), favoriteCount));
-            } else {
-                throw new EntityNotFoundException();
+            if (user.getIsGoodseul().getIsPremium() > 0) {
+                Optional<GoodseulEntity> goodseul = goodseulRepository.findByIdx(user.getIsGoodseul().getIdx());
+                if (goodseul.isPresent()) {
+                    GoodseulEntity goodseulEntity = goodseul.get();
+                    int favoriteCount = favoriteRepository.countFavoriteEntitiesByGoodseulEntity_idx(goodseulEntity.getIdx());
+                    list.add(new GoodseulResponseDto(goodseulEntity.getIdx(), goodseulEntity.getGoodseulName(), user.getUserProfile(), user.getIsGoodseul().getIsPremium(), favoriteCount));
+                } else {
+                    throw new EntityNotFoundException();
+                }
             }
         }
         Collections.shuffle(list);
@@ -124,10 +114,12 @@ public class OnlineUserService {
     }
     public void logOnlineGoodsulePremium() {
         log.info("현재 접속 중인 프리미엄 구슬 유저:");
-        for (Map.Entry<Long, UserEntity> entry : onlineGoodsuleIsPremium.entrySet()) {
-            Long userId = entry.getKey();
+        for (Map.Entry<Long, UserEntity> entry : onlineGoodsuleUsers.entrySet()) {
             UserEntity user = entry.getValue();
-            log.info("User ID: {}, Profile: {}, Nickname: {}, IsGoodseul: {}", userId, user.getUserProfile(), user.getNickname(), user.getIsGoodseul().getIdx());
+            if (user.getIsGoodseul().getIsPremium() > 0) {
+                Long userId = entry.getKey();
+                log.info("User ID: {}, Profile: {}, Nickname: {}, IsGoodseul: {}", userId, user.getUserProfile(), user.getNickname(), user.getIsGoodseul().getIdx());
+            }
         }
     }
 

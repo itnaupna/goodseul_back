@@ -56,11 +56,6 @@ public class LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
                         onlineUserService.logOnlineGoodsuleUsers();
                     }
 
-                    if(userEntity.getRole() == Role.GOODSEUL && isPremium > 0) {
-                        onlineUserService.addPremiumUser(userEntity);
-                        onlineUserService.logOnlineGoodsulePremium();
-                    }
-
                     onlineUserService.logOnlineGoodsuleFavorite();
 
                 });

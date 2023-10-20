@@ -2,6 +2,7 @@ package data.controller.chat;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import data.dto.ChatDto;
+import data.dto.ChatInfoDto;
 import data.dto.ChatResponseDto;
 import data.service.ChatService;
 import io.swagger.annotations.Api;
@@ -17,6 +18,7 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @RestController
@@ -46,10 +48,19 @@ public class ChatController {
     }
 
     @GetMapping
-    @ApiOperation(value = "모든 채팅 조회 API", notes = "특정 채팅방의 모든 채팅을 조회합니다.")
+    @ApiOperation(value = "채팅 내용 조회 API", notes = "특정 채팅방의 채팅 내용을 조회합니다.")
     public ResponseEntity<List<ChatResponseDto>> getAllChats(
-            @ApiParam(value = "ID of the chat room", required = true) @RequestParam String roomId) {
-        return new ResponseEntity<>(chatService.getAllMessages(roomId), HttpStatus.OK);
+            @ApiParam(value = "ID of the chat room", required = true) @RequestParam String roomId,
+            @ApiParam(value = "페이지 번호", defaultValue = "0") @RequestParam(defaultValue = "0") int page) {
+        return new ResponseEntity<>(chatService.getAllMessages(roomId,page), HttpStatus.OK);
+    }
+
+    @GetMapping("/room")
+    @ApiOperation(value = "참여중인 채팅방 조회 API", notes = "로그인한 사용자가 참여중인 채팅방의 목록을 조회합니다.")
+    public ResponseEntity<List<ChatInfoDto>> getMyChatRooms(
+            @ApiParam(value = "HttpServletRequest object", required = true) HttpServletRequest request)
+    {
+        return new ResponseEntity<>(chatService.getAllRooms(request),HttpStatus.OK);
     }
 
     @MessageMapping("/message")
@@ -59,4 +70,5 @@ public class ChatController {
             @ApiParam(value = "STOMP header accessor for the message", required = true) StompHeaderAccessor headerAccessor) {
         chatService.handleMessage(chatDto, headerAccessor);
     }
+
 }

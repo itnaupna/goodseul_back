@@ -26,8 +26,8 @@ public class UserCouponEntity {
     @Column(name = "ucp_number", nullable = false, length = 20)
     private String cpNumber;
 
-    @Column(name = "ucp_create_date", nullable = false)
     @CreationTimestamp
+    @Column(name = "ucp_create_date", nullable = false)
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
     private Timestamp ucpCreateDate ;
 

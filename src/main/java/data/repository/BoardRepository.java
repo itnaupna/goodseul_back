@@ -13,10 +13,8 @@ import java.util.Optional;
 public interface BoardRepository extends JpaRepository<BoardEntity, Integer> {
 
     Page<BoardDto> findBoardByCategory(@Param("category") String category, Pageable pageable);
-
     Page<BoardEntity> findByCategoryAndSubjectContaining(String category, String keyword, Pageable pageable);
     Optional<BoardEntity> findByIdx(Long idx);
-
     void deleteAllByIdx(Long idx);
 
 }

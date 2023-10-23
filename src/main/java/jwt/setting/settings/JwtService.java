@@ -2,6 +2,8 @@ package jwt.setting.settings;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import data.exception.TokenException;
+import data.exception.UnauthenticatedUserException;
 import data.repository.UserRepository;
 import lombok.Data;
 import lombok.Getter;
@@ -139,6 +141,22 @@ public class JwtService {
         } catch (Exception e){
             log.error("액세스 토큰이 유효하지않습니다.");
             return Optional.empty();
+        }
+    }
+
+    public Long extractIdxFromRequest(HttpServletRequest request) {
+
+        String accessToken = extractAccessToken(request).orElseThrow(TokenException::new);
+
+        try {
+            return JWT.require(Algorithm.HMAC512(secretKey))
+                    .build()
+                    .verify(accessToken)
+                    .getClaim(IDX_CLAIM)
+                    .asLong();
+        } catch (Exception e){
+            log.error("액세스 토큰이 유효하지않습니다.");
+            throw new UnauthenticatedUserException();
         }
     }
 

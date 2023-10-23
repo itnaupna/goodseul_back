@@ -30,7 +30,7 @@ public class RankingService {
 
     public void submitScoreWithHash(String gameId, double score, HttpServletRequest request, int orderBy) {
 
-        String userId = String.valueOf(jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get());
+        String userId = String.valueOf(jwtService.extractIdxFromRequest(request));
 
         // 유저의 현재 점수를 가져옵니다.
         Double currentScore = redisTemplate.opsForZSet().score(RANKING_PREFIX + gameId, userId);
@@ -69,7 +69,7 @@ public class RankingService {
     }
 
     public List<RankResponseDto> getTopRankings(String gameId, int limit, HttpServletRequest request, int orderBy) {
-        String userIdx = String.valueOf(jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get());
+        String userIdx = String.valueOf(jwtService.extractIdxFromRequest(request));
 
         Set<ZSetOperations.TypedTuple<Object>> rankings;
 
@@ -107,7 +107,7 @@ public class RankingService {
     }
 
     public List<RankResponseDto> getWeekRankings(String gameId, int limit, HttpServletRequest request, int orderBy) {
-        String userIdx = String.valueOf(jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get());
+        String userIdx = String.valueOf(jwtService.extractIdxFromRequest(request));
 
         Set<ZSetOperations.TypedTuple<Object>> rankings;
 

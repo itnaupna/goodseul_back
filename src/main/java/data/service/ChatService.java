@@ -15,6 +15,7 @@ import jwt.setting.settings.JwtService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
@@ -87,7 +88,7 @@ public class ChatService {
     }
 
     public List<ChatInfoDto> getAllRooms(HttpServletRequest request) {
-        long userIdx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
+        long userIdx = jwtService.extractIdxFromRequest(request);
 
        List<ChatRoomEntity> list = chatRoomRepository.findByRoomIdStartingWithOrRoomIdEndingWithOrderByLastChatTimeDesc(userIdx + "to", "to" + userIdx);
 
@@ -95,18 +96,29 @@ public class ChatService {
 
        for(ChatRoomEntity entity : list) {
            String roomId = entity.getRoomId();
-           StringTokenizer st = new StringTokenizer(roomId,"to");
+           log.info(roomId);
+
+           Pageable topByOrder = PageRequest.of(0, 1);
+           Page<ChatEntity> latestMessagePage = chatRepository.findByRoomIdOrderBySendTimeDesc(roomId, topByOrder);
+
+           String lastChat = "";
+
+           if(!latestMessagePage.getContent().isEmpty()) {
+               lastChat = latestMessagePage.getContent().get(0).getMessage();
+           }
+
+           StringTokenizer st = new StringTokenizer(roomId, "to");
            long person1 = Long.parseLong(st.nextToken());
            long person2 = Long.parseLong(st.nextToken());
            log.info(person1 + " 1");
            log.info(person2 + " 2");
 
-           if(person1 == userIdx) {
+           if (person1 == userIdx) {
                UserEntity user = userRepository.findByIdx(person2).get();
-               dtoList.add(new ChatInfoDto(user.getNickname(),person2,user.getIsGoodseul() != null ? user.getIsGoodseul().getIdx() : 0L));
+               dtoList.add(new ChatInfoDto(user.getNickname(), person2, user.getIsGoodseul() != null ? user.getIsGoodseul().getIdx() : 0L, user.getUserProfile(), lastChat));
            } else {
                UserEntity user = userRepository.findByIdx(person1).get();
-               dtoList.add(new ChatInfoDto(user.getNickname(),person1,user.getIsGoodseul() != null ? user.getIsGoodseul().getIdx() : 0L));
+               dtoList.add(new ChatInfoDto(user.getNickname(), person1, user.getIsGoodseul() != null ? user.getIsGoodseul().getIdx() : 0L, user.getUserProfile(), lastChat));
            }
        }
         return dtoList;

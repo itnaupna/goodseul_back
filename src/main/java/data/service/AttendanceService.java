@@ -4,6 +4,8 @@ import data.dto.AttendanceResponseDto;
 import data.dto.PointDto;
 import data.entity.AttendanceEntity;
 import data.entity.UserEntity;
+import data.exception.TokenException;
+import data.exception.UserNotFoundException;
 import data.repository.AttendanceRepository;
 import data.repository.UserRepository;
 import jwt.setting.settings.JwtService;
@@ -12,9 +14,11 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
+import java.awt.*;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.List;
 
 
 @Service
@@ -75,9 +79,10 @@ public class AttendanceService {
 
     @NotNull
     private AttendanceEntity getAttendanceEntity(HttpServletRequest request) {
-        long userIdx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
-        Optional<UserEntity> user = userRepository.findByIdx(userIdx);
 
+        long userIdx = jwtService.extractIdxFromRequest(request);
+
+        Optional<UserEntity> user = userRepository.findByIdx(userIdx);
         AttendanceEntity attendanceEntity = new AttendanceEntity();
 
         if(user.isPresent()){
@@ -85,6 +90,7 @@ public class AttendanceService {
             attendanceEntity = getAttendanceEntity(user.get());
         } else {
             log.error("User data 존재하지않음.");
+            throw new UserNotFoundException();
         }
         return attendanceEntity;
     }
@@ -126,6 +132,7 @@ public class AttendanceService {
                 if (position == i) {
                     if (checkPoint != 0) {
                         log.error("에러 발생 : 이미 선택된 위치 재 선택");
+                        throw new RuntimeException("이미 선택된 위치 재 선택되었습니다.");
                     } else {
                         returnedPoint = getRandomPoint(countPoint);
                         log.info(Arrays.toString(point));

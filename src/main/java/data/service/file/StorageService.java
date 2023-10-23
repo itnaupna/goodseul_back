@@ -1,6 +1,8 @@
 package data.service.file;
 
 import data.config.FileStorageProperties;
+import data.exception.IllegalMimeTypeException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class StorageService {
 
     private String uploadPath;
@@ -36,15 +39,15 @@ public class StorageService {
         Path uploadPath = Paths.get(this.uploadPath + "/" + postName);
         if(!Files.exists(uploadPath)){
             Files.createDirectories(uploadPath);
-            System.out.println("make dir : " + uploadPath.toString());
+            log.debug("make dir : " + uploadPath.toString());
         }
 
         for(int i = 0; i < files.length; i++) {
             try(InputStream inputStream = files[i].getInputStream()){
                 Path filePath = uploadPath.resolve(fileNames.get(i));
                 Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
-            } catch (IOException ioe){
-                throw new IOException("Could not save image file : " + fileNames.get(i), ioe);
+            } catch (Exception exception){
+                throw new IOException("Could not save image file : " + fileNames.get(i), exception);
             }
         }
         return fileNames;
@@ -64,21 +67,6 @@ public class StorageService {
             return fileName;
         } catch (IOException ioe) {
             throw new IOException("Could not save image file : " + fileName, ioe);
-        }
-    }
-
-    public Resource loadFileAsResource(String userName, String fileName){
-        Path uploadPath = Paths.get(this.uploadPath+"/"+userName);
-        try {
-            Path filePath = uploadPath.resolve(fileName).normalize();
-            Resource resource = new UrlResource(filePath.toUri());
-            if(resource.exists()) {
-                return resource;
-            } else {
-                throw new MyFileNotFoundException("File not Found " + fileName);
-            }
-        } catch (MalformedURLException ex) {
-            throw new MyFileNotFoundException("File not Found " + fileName,ex);
         }
     }
 

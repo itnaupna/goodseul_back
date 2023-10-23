@@ -2,6 +2,7 @@ package data.controller;
 
 import data.dto.BoardDto;
 import data.dto.CommentRequestDto;
+import data.exception.BoardNotFoundException;
 import data.service.BoardService;
 import data.service.UserService;
 import io.swagger.annotations.*;
@@ -125,6 +126,7 @@ public class BoardController {
     @ApiOperation(value = "게시판 리스트 조회 API", notes = "카테고리와 키워드에 따라 게시판 리스트를 조회합니다.")
     @ApiResponses({
             @ApiResponse(code = 200, message = "작성 성공"),
+            @ApiResponse(code = 404, message = "조건에 맞는 게시글이 존재하지 않습니다"),
             @ApiResponse(code = 500, message = "게시글 조회 중 오류가 발생했습니다.")
     })
     public ResponseEntity<?> searchBoard(
@@ -135,10 +137,12 @@ public class BoardController {
             Page<BoardDto> boards = boardService.searchByCategoryAndKeyword(category, keyword, page);
             List<BoardDto> boardlist = boards.getContent();
             return ResponseEntity.ok(boardlist);
-
+        }catch (EntityNotFoundException e){
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("게시글 조회 중 오류가 발생했습니다.");
         }
+
     }
 
 
@@ -169,11 +173,19 @@ public class BoardController {
         }
     }
 
+    //게시글 상세정보
     @GetMapping("/detail/{idx}")
     @ApiOperation(value = "게시판 상세 조회 API", notes = "idx에 따른 게시판의 상세 내용을 조회합니다.")
-    public BoardDto detailBoard(
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "상세정보 보기"),
+            @ApiResponse(code = 404, message = "게시글을 찾을 수 없습니다."),
+            @ApiResponse(code = 500, message = "조회중 오류가 발생했습니다.")
+    })
+    public ResponseEntity<?> detailBoard(
             @ApiParam(value = "조회할 게시글의 idx", required = true) @PathVariable Long idx) {
-        return boardService.boardDetail(idx);
+
+            return ResponseEntity.ok(boardService.boardDetail(idx));
+
     }
 }
 

@@ -5,6 +5,8 @@ import data.dto.GoodseulInfoDto;
 import data.dto.UserDto;
 import data.entity.GoodseulEntity;
 import data.entity.UserEntity;
+import data.exception.UserConflictException;
+import data.exception.UserNotFoundException;
 import data.repository.GoodseulRepository;
 import data.repository.UserRepository;
 import data.service.file.StorageService;
@@ -63,12 +65,12 @@ public class UserService {
     }
 
     //일반 회원 회원가입
-    public void signUp(UserDto userDto) throws Exception {
+    public void signUp(UserDto userDto)  {
         if (userRepository.findByEmail(userDto.getEmail()).isPresent()) {
-            throw new Exception("이미 존재하는 이메일입니다");
+            throw new UserConflictException("이미 존재하는 이메일입니다");
         }
         if (userRepository.findByNickname(userDto.getNickname()).isPresent()) {
-            throw new Exception("이미 존재하는 닉네임입니다.");
+            throw new UserConflictException("이미 존재하는 닉네임입니다.");
         }
         UserEntity user = UserEntity.builder()
                 .email(userDto.getEmail())
@@ -78,7 +80,6 @@ public class UserService {
                 .phoneNumber(userDto.getPhoneNumber())
                 .location(userDto.getLocation())
                 .birth(userDto.getBirth())
-                .isGoodseul(null)
                 .role(Role.USER)
                 .build(); // 최종적으로 객체를 반환
         user.passwordEncode(passwordEncoder); // 사용자 비밀번호를 암호화하기 위한 Spring Security의 비밀번호 인코딩
@@ -86,7 +87,7 @@ public class UserService {
     }
 
     //구슬님 회원가입
-    public void goodseulSignup(GoodseulDto goodseulDto, UserDto userDto, List<MultipartFile> uploads) throws Exception{
+    public void goodseulSignup(GoodseulDto goodseulDto, UserDto userDto, List<MultipartFile> uploads) throws IOException {
 
         StringBuilder sb = new StringBuilder();
 
@@ -99,10 +100,10 @@ public class UserService {
         log.info(userDto.getNickname());
 
         if (userRepository.existsByEmail(userDto.getEmail())) {
-            throw new Exception("이미 존재하는 이메일입니다");
+            throw new UserConflictException("이미 존재하는 이메일입니다");
         }
         if (userRepository.existsByNickname(userDto.getNickname())) {
-            throw new Exception("이미 존재하는 닉네임입니다.");
+            throw new UserConflictException("이미 존재하는 닉네임입니다");
         }
 
         GoodseulEntity goodseuls = GoodseulEntity.builder()
@@ -169,18 +170,22 @@ public class UserService {
         if (user.isPresent()) {
             return user.get().getPhoneNumber();
         }
-        return "없습니다";
+        throw new UserNotFoundException("해당하는 사용자 정보가 없습니다.");
     }
 
     //비밀번호 변경
     public String pwdUpdate(String email, String password) {
-        Optional<UserEntity> userId = userRepository.findByEmail(email);
-        if (userId.isPresent()) {
-            userId.get().setPassword(passwordEncoder.encode(password));
-            userRepository.save(userId.get());
+        Optional<UserEntity> userIdOptional = userRepository.findByEmail(email);
+        if (userIdOptional.isPresent()) {
+            UserEntity user = userIdOptional.get();
+            if(passwordEncoder.matches(password, user.getPassword())){
+                throw new UserConflictException("비밀번호가 이전과 동일합니다");
+            }
+            user.setPassword(passwordEncoder.encode(password));
+            userRepository.save(user);
             return "완료";
         } else {
-            return "해당 회원이 없습니다.";
+            throw new UserNotFoundException("해당하는 사용자 정보가 없습니다.");
         }
     }
 

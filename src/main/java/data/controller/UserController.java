@@ -6,9 +6,7 @@ import data.entity.UserEntity;
 import data.service.MailSendService;
 import data.service.OnlineUserService;
 import data.service.UserService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.*;
 import jwt.setting.settings.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,10 +36,16 @@ public class UserController {
     private final JwtService jwtService;
     private  final OnlineUserService onlineUserService;
 
-    @ResponseBody
+
     //일반 유저 회원가입
     @PostMapping("/lv0/user/sign-up")
     @ApiOperation(value = "회원가입 API", notes = "사용자 정보를 입력하여 회원가입을 합니다.")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "회원가입 성공"),
+            @ApiResponse(code = 400, message = "댓글 내용은 비어 있을 수 없습니다"),
+            @ApiResponse(code = 409, message = "중복 에러"),
+            @ApiResponse(code = 500, message = "회원가입 중 오류가 발생했습니다.")
+    })
     public String userSignUp(@ApiParam(value = "사용자 회원가입 정보", required = true) @RequestBody UserDto userDto) throws Exception {
         userService.signUp(userDto);
         return "회원가입 성공";
@@ -50,6 +54,10 @@ public class UserController {
     //구슬님 회원가입
     @PostMapping(value = "/lv0/goodseul/sign-up", consumes = "multipart/form-data")
     @ApiOperation(value = "구슬님 회원가입 API", notes = "구슬님의 회원 정보와 관련 파일들을 통해 회원가입을 합니다.")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "회원가입 성공"),
+            @ApiResponse(code = 409, message = "중복")
+    })
     public String goodseulSignUp(
             @ApiParam(value = "이메일 주소", required = true) String email,
             @ApiParam(value = "이름", required = true) String name,
@@ -135,12 +143,16 @@ public class UserController {
     // 비밀번호 변경
     @PostMapping("/lv0/pwdupdate")
     @ApiOperation(value = "비밀번호 변경 API", notes = "제공된 이메일에 해당하는 사용자의 비밀번호를 변경합니다.")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "회원가입 성공"),
+            @ApiResponse(code = 404, message = "사용자 정보가 없습니다"),
+            @ApiResponse(code = 409, message = "이전 비밀번호와 동일합니다")
+    })
     public String pwdUpdate(
             @ApiParam(value = "비밀번호를 변경할 사용자의 이메일", required = true) @RequestParam String email,
             @ApiParam(value = "새로운 비밀번호", required = true) @RequestParam String password) {
-
         userService.pwdUpdate(email, password);
-        return "변경";
+        return "변경되었습니다";
     }
     //jwt test
     @GetMapping("/lv0/check")
@@ -212,10 +224,7 @@ public class UserController {
     @ApiOperation(value = "3가지 유효성 검사 API", notes = "제공된 이메일, 생년월일, 이름에 대한 유효성 검사를 합니다.")
     public ResponseEntity<String> allCheck(@ApiParam(value = "이메일, 생년월일, 이름 정보", required = true) @RequestBody UserCheckDto userCheckDto) {
         String phoneNumber = userService.allCheck(userCheckDto.getEmail(), userCheckDto.getBirth(), userCheckDto.getName());
-        if (phoneNumber != null) {
             return ResponseEntity.ok(phoneNumber);
-        }
-        return ResponseEntity.badRequest().body("Check failed");
     }
 
 

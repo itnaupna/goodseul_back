@@ -6,6 +6,7 @@ import data.dto.CommentResponseDto;
 import data.entity.BoardEntity;
 import data.entity.CommentEntity;
 import data.entity.UserEntity;
+import data.exception.BoardNotFoundException;
 import data.repository.BoardRepository;
 import data.repository.CommentRepository;
 import data.repository.OfferRepository;
@@ -15,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -77,8 +77,7 @@ public class BoardService {
     //게시판 수정
     public void boardUpdate(Long idx, BoardDto boardDto){
         BoardEntity board = boardRepository.findByIdx(idx)
-                .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다."));
-
+                .orElseThrow(BoardNotFoundException::new);
         if (boardDto.getSubject() == null || boardDto.getContent() == null) {
             throw new IllegalArgumentException("게시글의 제목과 내용은 필수입니다.");
         }
@@ -107,13 +106,11 @@ public class BoardService {
     public void commentDelete(Long idx){
         commentRepository.deleteByIdx(idx);
     }
+
     //게시판 상세보기
     public BoardDto boardDetail(Long idx){
-        Optional<BoardEntity> boardOptional = boardRepository.findByIdx(idx);
-        if (!boardOptional.isPresent()) {
-            throw new RuntimeException("게시글을 찾을 수 없습니다.");
-        }
-        BoardEntity board = boardOptional.get();
+        BoardEntity board = boardRepository.findByIdx(idx)
+                .orElseThrow(BoardNotFoundException::new);
         BoardDto dto = new BoardDto();
         dto.setIdx(board.getIdx());
         dto.setSubject(board.getSubject());
@@ -136,9 +133,14 @@ public class BoardService {
     }
 
     //게시판 검색 + 리스트 + 페이징
-    public Page<BoardDto> searchByCategoryAndKeyword(String category, String keyword, int page){
-        PageRequest pageable = PageRequest.of(page, 4, Sort.by(Sort.Direction.ASC,"idx"));
+    public Page<BoardDto> searchByCategoryAndKeyword(String category, String keyword, int page) {
+
+        PageRequest pageable = PageRequest.of(page, 4, Sort.by(Sort.Direction.ASC, "idx"));
         Page<BoardEntity> boards = boardRepository.findByCategoryAndSubjectContaining(category, keyword, pageable);
+
+        if (boards.isEmpty()) {
+            throw new EntityNotFoundException("조건에 맞는 게시글이 존재하지 않습니다.");
+        }
         return boards.map(board -> toBoardDto(board));
     }
 

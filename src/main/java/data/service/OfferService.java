@@ -3,6 +3,7 @@ package data.service;
 import data.dto.OfferDto;
 import data.entity.OfferEntity;
 import data.entity.UserEntity;
+import data.exception.UserNotFoundException;
 import data.repository.OfferRepository;
 import data.repository.UserRepository;
 import jwt.setting.settings.JwtService;
@@ -35,18 +36,11 @@ public class OfferService {
     }
 
     public String setOffer(HttpServletRequest request,OfferDto dto) {
-        long idx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
+        long idx = jwtService.extractIdxFromRequest(request);
 
-        Optional<UserEntity> user = userRepository.findByIdx(idx);
+        UserEntity user = userRepository.findByIdx(idx).orElseThrow(UserNotFoundException::new);
 
-        if(user.isPresent()) {
-            log.info("User data 조회 성공");
-        } else {
-            log.error("User data 존재하지않음.");
-            return "User data 존재하지않음.";
-        }
-
-        OfferEntity offerEntity = OfferEntity.offerDtoToEntity(dto,user.get());
+        OfferEntity offerEntity = OfferEntity.offerDtoToEntity(dto,user);
         offerEntity.setWriteDate(new Timestamp(System.currentTimeMillis()));
         log.info(offerEntity.toString());
 
@@ -55,7 +49,7 @@ public class OfferService {
     }
 
     public List<OfferDto> getMyOfferList(HttpServletRequest request,int page) {
-        long idx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
+        long idx = jwtService.extractIdxFromRequest(request);
         log.info("idx : " + idx);
 
         List<OfferDto> dtoList = new LinkedList<>();
@@ -74,13 +68,16 @@ public class OfferService {
     }
 
     public List<OfferDto> getWeekOfferList(HttpServletRequest request,int page) {
-        long idx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
+        long idx = jwtService.extractIdxFromRequest(request);
         log.info("idx : " + idx);
 
         List<OfferDto> dtoList = new LinkedList<>();
 
-        if(userRepository.findByIdx(idx).get().getIsGoodseul().getIdx() == 0) {
-            log.error("잘못된 요청입니다.");
+        if(userRepository.findByIdx(idx).isPresent()) {
+            if(userRepository.findByIdx(idx).get().getIsGoodseul().getIdx() == 0) {
+                log.error("잘못된 요청입니다.");
+                throw new IllegalArgumentException("잘못된 요청입니다.");
+            }
         } else {
             PageRequest pageRequest = PageRequest.of(page,10, Sort.by("write_date").descending());
             Page<OfferEntity> list = offerRepository.findPostsWrittenInTheLastWeek(pageRequest);
@@ -95,11 +92,10 @@ public class OfferService {
     }
 
     public void deleteOffer(HttpServletRequest request, int offerIdx) {
-        long userIdx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
+        long userIdx = jwtService.extractIdxFromRequest(request);
         if(offerRepository.findByOfferIdx(offerIdx).isPresent()) {
             if(offerRepository.findByOfferIdx(offerIdx).get().getUser().getIdx() != userIdx) {
                 log.error("요청을 시도한 사용자와 실제 견적 요청자와 불일치.");
-                return;
             } else {
                 offerRepository.deleteById(offerIdx);
             }
@@ -107,11 +103,10 @@ public class OfferService {
     }
 
     public void updateWriteDate(HttpServletRequest request, int offerIdx) {
-        long userIdx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
+        long userIdx = jwtService.extractIdxFromRequest(request);
         if(offerRepository.findByOfferIdx(offerIdx).isPresent()) {
             if(offerRepository.findByOfferIdx(offerIdx).get().getUser().getIdx() != userIdx) {
                 log.error("요청을 시도한 사용자와 실제 견적 요청자와 불일치.");
-                return;
             } else {
                 OfferEntity offerEntity = offerRepository.findByOfferIdx(offerIdx).get();
                 offerEntity.setWriteDate(new Timestamp(System.currentTimeMillis()));

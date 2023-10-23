@@ -65,8 +65,8 @@ public class SecurityConfig {
                 .antMatchers("/", "/css/**", "/images/**", "/js/**", "/favicon.ico", "/h2-console/**", "/tsx/**","/html/**","/ws").permitAll()
                 .antMatchers("/api/lv0/**", "/login").permitAll() // permitAll는 모든 사용자 접근 가능
                 .antMatchers("/api/sms/**").permitAll()
-                .antMatchers("/**").permitAll()
                 .antMatchers("/api/lv1/**").authenticated() // authenticated는 인증된 사용자만 접근 가능
+                .antMatchers("/**").permitAll()
                 .anyRequest().authenticated();
         //==소셜 로그인 설정 ==//
 //                .oauth2Login()

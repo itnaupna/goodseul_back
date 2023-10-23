@@ -122,7 +122,7 @@ public class    JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
                 .filter(jwtService::isTokenValid)// 유효한 토큰인지 검증
                 .ifPresent(accessToken -> jwtService.extractIdx(accessToken) //유효하면 nickname 추출 후
                         .ifPresent(idx -> userRepository.findByIdx(idx)
-                .ifPresent(this::saveAuthentication))); // 파라미터 유저를 넘겨서 해당 유저를 인증 처리
+                            .ifPresent(this::saveAuthentication))); // 파라미터 유저를 넘겨서 해당 유저를 인증 처리
         filterChain.doFilter(request, response);
     }
 

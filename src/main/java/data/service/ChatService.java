@@ -1,25 +1,30 @@
 package data.service;
 
 import data.dto.ChatDto;
+import data.dto.ChatInfoDto;
 import data.dto.ChatResponseDto;
 import data.dto.ChatRoomDto;
 import data.entity.ChatEntity;
 import data.entity.ChatRoomEntity;
+import data.entity.OfferEntity;
+import data.entity.UserEntity;
 import data.repository.ChatRepository;
 import data.repository.ChatRoomRepository;
-import jwt.setting.config.Role;
-import lombok.extern.java.Log;
+import data.repository.UserRepository;
+import jwt.setting.settings.JwtService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import java.sql.Timestamp;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -27,13 +32,17 @@ public class ChatService {
     private final SimpMessageSendingOperations sendingOperations;
     private final ChatRepository chatRepository;
     private final ChatRoomRepository chatRoomRepository;
+    private final UserRepository userRepository;
+    private final JwtService jwtService;
     private Map<String, Integer> session = new HashMap<>();
     private Map<String, ChatRoomDto> sessionData = new HashMap<>();
 
-    public ChatService(SimpMessageSendingOperations sendingOperations, ChatRepository chatRepository, ChatRoomRepository chatRoomRepository) {
+    public ChatService(SimpMessageSendingOperations sendingOperations, ChatRepository chatRepository, ChatRoomRepository chatRoomRepository, UserRepository userRepository, JwtService jwtService) {
         this.sendingOperations = sendingOperations;
         this.chatRepository = chatRepository;
         this.chatRoomRepository = chatRoomRepository;
+        this.userRepository = userRepository;
+        this.jwtService = jwtService;
     }
 
     public String createChatRoom (int person1, int person2) {
@@ -58,17 +67,62 @@ public class ChatService {
             chatDto.setRoomId(roomId);
             chatRepository.save(chatDto.convertToEntity(chatDto));
         }
+
+        ChatRoomEntity ChatRoom = chatRoomRepository.findByRoomId(roomId);
+        ChatRoom.setLastChatTime(new Timestamp(System.currentTimeMillis()));
+        chatRoomRepository.save(ChatRoom);
     }
 
-    public List<ChatResponseDto> getAllMessages(String roomId) {
-        List<ChatEntity> chatEntities = chatRepository.findAllByRoomId(roomId);
+    public List<ChatResponseDto> getAllMessages(String roomId,int page) {
         List<ChatResponseDto> chatDtos = new ArrayList<>();
 
-        for(ChatEntity entity : chatEntities) {
+        PageRequest pageRequest = PageRequest.of(page,10, Sort.by("sendTime").descending());
+        Page<ChatEntity> list = chatRepository.findAllByRoomId(roomId,pageRequest);
+
+
+        for(ChatEntity entity : list) {
             chatDtos.add(new ChatResponseDto(entity.getSender(),entity.getReceiver(),entity.getMessage(),entity.getSendTime(),entity.isReadCheck(),entity.getRoomId()));
         }
 
         return chatDtos;
+    }
+
+    public List<ChatInfoDto> getAllRooms(HttpServletRequest request) {
+        long userIdx = jwtService.extractIdxFromRequest(request);
+
+       List<ChatRoomEntity> list = chatRoomRepository.findByRoomIdStartingWithOrRoomIdEndingWithOrderByLastChatTimeDesc(userIdx + "to", "to" + userIdx);
+
+       List<ChatInfoDto> dtoList = new LinkedList<>();
+
+       for(ChatRoomEntity entity : list) {
+           String roomId = entity.getRoomId();
+           log.info(roomId);
+
+           Pageable topByOrder = PageRequest.of(0, 1);
+           Page<ChatEntity> latestMessagePage = chatRepository.findByRoomIdOrderBySendTimeDesc(roomId, topByOrder);
+
+           String lastChat = "";
+
+           if(!latestMessagePage.getContent().isEmpty()) {
+               lastChat = latestMessagePage.getContent().get(0).getMessage();
+           }
+
+           StringTokenizer st = new StringTokenizer(roomId, "to");
+           long person1 = Long.parseLong(st.nextToken());
+           long person2 = Long.parseLong(st.nextToken());
+           log.info(person1 + " 1");
+           log.info(person2 + " 2");
+
+           if (person1 == userIdx) {
+               UserEntity user = userRepository.findByIdx(person2).get();
+               dtoList.add(new ChatInfoDto(user.getNickname(), person2, user.getIsGoodseul() != null ? user.getIsGoodseul().getIdx() : 0L, user.getUserProfile(), lastChat));
+           } else {
+               UserEntity user = userRepository.findByIdx(person1).get();
+               dtoList.add(new ChatInfoDto(user.getNickname(), person1, user.getIsGoodseul() != null ? user.getIsGoodseul().getIdx() : 0L, user.getUserProfile(), lastChat));
+           }
+       }
+        return dtoList;
+
     }
 
     public void updateReadCheck(int receiver) {
@@ -115,6 +169,7 @@ public class ChatService {
 
             case "TALK":
                 saveChat(chatDto);
+
                 break;
 
             case "EXIT":

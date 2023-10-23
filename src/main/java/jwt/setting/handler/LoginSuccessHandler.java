@@ -17,6 +17,7 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.transaction.Transactional;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -30,9 +31,8 @@ public class LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     @Value("${jwt.access.expiration}")
     private String accessTokenExpiration;
 
-    private Map<Long, UserEntity> onlineGoodsuleUsers = new ConcurrentHashMap<>();
-
     @Override
+    @Transactional
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) {
         String id = extractUsername(authentication);// 인증 정보에서 Username(email) 추출
@@ -51,12 +51,14 @@ public class LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
                     userRepository.saveAndFlush(userEntity);
 
                     if(userEntity.getRole() == Role.GOODSEUL) {
-                        onlineUserService.addUser(userEntity);
+                        onlineUserService.addAllUser(userEntity);
                         onlineUserService.logOnlineGoodsuleUsers();
                     }
+
+                    onlineUserService.logOnlineGoodsuleFavorite();
+
                 });
 
-//        logOnlineGoodsuleUsers();
         log.info("로그인에 성공하였습니다. 이메일 : {}", id);
         log.info("로그인에 성공하였습니다. AccessToken : {}",accessToken);
         log.info("re: "+ refreshToken);

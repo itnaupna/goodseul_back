@@ -2,7 +2,6 @@ package data.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import data.dto.RankResponseDto;
-import data.exception.TestException;
 import data.service.RankingService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -54,8 +53,4 @@ public class RankingController {
         return new ResponseEntity<>(rankingService.getTopRankings(gameIdx,10, request, orderBy),HttpStatus.OK);
     }
 
-    @GetMapping("/test")
-    public ResponseEntity<String> test() {
-        throw new TestException();
-    }
 }

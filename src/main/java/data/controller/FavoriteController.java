@@ -28,8 +28,8 @@ public class FavoriteController {
             @ApiImplicitParam(name = "u_idx", value = "유저 idx", dataType = "long", required = false, paramType = "query")
     })
     @PostMapping
-    public ResponseEntity<Object> insertFavorite(@RequestBody FavoriteDto dto) {
-        return new ResponseEntity<>(favoriteService.insertFavorite(dto), HttpStatus.OK);
+    public ResponseEntity<Object> insertFavorite(@RequestBody FavoriteDto dto, HttpServletRequest request) {
+        return new ResponseEntity<>(favoriteService.insertFavorite(dto, request), HttpStatus.OK);
     }
 
     @ApiOperation(value = "찜목록 삭제", notes = "찜한 구슬 삭제")

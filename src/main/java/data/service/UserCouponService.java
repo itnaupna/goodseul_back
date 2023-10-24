@@ -5,6 +5,7 @@ import data.dto.UserCouponResponseDto;
 import data.entity.CouponEntity;
 import data.entity.UserCouponEntity;
 import data.entity.UserEntity;
+import data.exception.UserNotFoundException;
 import data.repository.CouponRepository;
 import data.repository.PointHistoryRepository;
 import data.repository.UserCouponRepository;
@@ -96,10 +97,7 @@ public class UserCouponService {
         // 포인트 사용 로직 호출
         pointService.usePoint(request, couponPrice, couponName + " 구매");
 
-        UserEntity userEntity = userRepository.findById(idx).orElse(null);
-        if(userEntity == null) {
-            throw new RuntimeException("User not found for ID: " + idx);
-        }
+        UserEntity userEntity = userRepository.findById(idx).orElseThrow(UserNotFoundException::new);
 
         // 쿠폰 코드 생성
         String code = createCouponCode();
@@ -112,7 +110,7 @@ public class UserCouponService {
     }
 
     public Map<String, Object> getPageMyCoupon(int page, int size, String sortProperty, String sortDirection, HttpServletRequest request) {
-        long idx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
+        long idx = jwtService.extractIdxFromRequest(request);
         Sort.Direction direction = Sort.Direction.fromString(sortDirection);
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortProperty));
         Page<UserCouponEntity> result = userCouponRepository.findByMemberIdx(idx, pageable);

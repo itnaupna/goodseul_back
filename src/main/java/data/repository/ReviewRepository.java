@@ -29,6 +29,8 @@ public interface ReviewRepository extends JpaRepository <ReviewEntity, Integer> 
     String findRandomReviewSubjectsByGIdx(@Param("gIdx") Long g_idx);
     Page<ReviewEntity> findByUserEntity_Idx(Long u_idx, Pageable pageable);
 
+    int countAllByUserEntity_Idx(long uIdx);
+
 }
 
 

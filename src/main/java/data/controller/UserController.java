@@ -132,6 +132,13 @@ public class UserController {
         return new ResponseEntity<GoodseulInfoDto>(userService.getGoodseulInfo(goodseulIdx), HttpStatus.OK);
     }
 
+    @GetMapping("/lv1/user")
+    @ApiOperation(value = "유저 단건 조회 API", notes = "토큰의 idx 값을 불러와 해당 유저의 이메일을 조회합니다.")
+    public ResponseEntity<String> getEmail(@ApiParam(value = "HttpServletRequest object", required = true) HttpServletRequest request) {
+        return new ResponseEntity<>(userService.getUserEmail(request),HttpStatus.OK);
+    }
+
+
     // 비밀번호 변경
     @PostMapping("/lv0/pwdupdate")
     @ApiOperation(value = "비밀번호 변경 API", notes = "제공된 이메일에 해당하는 사용자의 비밀번호를 변경합니다.")
@@ -145,6 +152,11 @@ public class UserController {
     //jwt test
     @GetMapping("/lv0/check")
     public String jwtTest(){
+        return "check";
+    }
+
+    @GetMapping("/lv1/check")
+    public String jwtTestLv1(){
         return "check";
     }
 
@@ -260,6 +272,7 @@ public class UserController {
         List<GoodseulResponseDto> onlineUsers = onlineUserService.getOnlineUsers();
         return new ResponseEntity<>(onlineUsers, HttpStatus.OK);
     }
+
     @GetMapping("/lv0/online-premium")
     @ApiOperation(value = "실시간 접속 isPremium 구슬 유저 조회 API", notes = "현재 실시간으로 접속 중인 구슬 중 isPremium가 1인 랜덤 6명을 반환합니다.")
     public ResponseEntity<List<GoodseulResponseDto>> getOnlinePremiumUsers() {
@@ -300,6 +313,12 @@ public class UserController {
         } else {
             return new ResponseEntity<>("회원 탈퇴 실패", HttpStatus.NOT_FOUND);
         }
+    }
+
+    @GetMapping("/lv1/mypage")
+    @ApiOperation(value = "MyPage용 데이터 리턴 API", notes = "현재 로그인된 사용자의 MyPage에서 출력될 데이터를 조회합니다.")
+    public ResponseEntity<MyPageResponseDto> getMyPageData(@ApiParam(value = "HttpServletRequest object", required = true) HttpServletRequest request) {
+        return new ResponseEntity<>(userService.getMypageData(request),HttpStatus.OK);
     }
 
 }

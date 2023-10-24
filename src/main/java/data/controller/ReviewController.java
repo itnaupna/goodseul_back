@@ -63,9 +63,9 @@ public class ReviewController {
     }
     @ApiOperation(value = "리뷰 추가")
     @PostMapping("/lv1/review")
-    public ResponseEntity<ReviewDto> insertReview (@ApiParam(value = "리뷰 DTO 정보") @RequestBody ReviewDto dto) {
+    public ResponseEntity<ReviewDto> insertReview (@ApiParam(value = "리뷰 DTO 정보") @RequestBody ReviewDto dto, HttpServletRequest request) {
         log.info(dto.toString());
-        return new ResponseEntity<>(reviewService.insertReview(dto), HttpStatus.OK);
+        return new ResponseEntity<>(reviewService.insertReview(dto, request), HttpStatus.OK);
     }
     @ApiOperation(value = "베스트 리뷰(좋아요순) 리스트")
     @GetMapping("/lv0/review/best")

@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @RestController
@@ -28,17 +29,19 @@ public class ReviewLikeController {
 
     @ApiOperation(value = "리뷰 좋아요 추가")
     @PostMapping("/lv1/like")
-    public ResponseEntity<Object> insertLike(
-            @ApiParam(value = "리뷰 좋아요 DTO 정보") @RequestBody ReviewLikeDto dto) {
-        return new ResponseEntity<>(reviewLikeService.insertLike(dto), HttpStatus.OK);
+    public ResponseEntity<String> insertLike(
+            @ApiParam(value = "리뷰 좋아요 DTO 정보") @RequestBody ReviewLikeDto dto, HttpServletRequest request) {
+        reviewLikeService.insertLike(dto, request);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @ApiOperation(value = "리뷰 좋아요 삭제")
-    @DeleteMapping("/lv1/like/{r_idx}/{u_idx}")
+    @DeleteMapping("/lv1/like/{r_idx}")
     public ResponseEntity<Object> deleteLike(
             @ApiParam(value = "리뷰 idx") @PathVariable int r_idx,
-            @ApiParam(value = "유저 idx") @PathVariable Long u_idx) {
-        return new ResponseEntity<>(reviewLikeService.deleteLike(r_idx, u_idx), HttpStatus.OK);
+            @ApiParam(value = "유저 idx") HttpServletRequest request) {
+        reviewLikeService.deleteLike(r_idx, request);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
 }

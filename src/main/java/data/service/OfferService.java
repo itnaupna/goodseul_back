@@ -96,6 +96,7 @@ public class OfferService {
         if(offerRepository.findByOfferIdx(offerIdx).isPresent()) {
             if(offerRepository.findByOfferIdx(offerIdx).get().getUser().getIdx() != userIdx) {
                 log.error("요청을 시도한 사용자와 실제 견적 요청자와 불일치.");
+
             } else {
                 offerRepository.deleteById(offerIdx);
             }

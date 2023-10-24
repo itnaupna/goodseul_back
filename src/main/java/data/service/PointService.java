@@ -5,6 +5,7 @@ import data.dto.PointHistoryDto;
 import data.entity.PointEntity;
 import data.entity.PointHistoryEntity;
 import data.entity.UserEntity;
+import data.exception.UserNotFoundException;
 import data.repository.PointHistoryRepository;
 import data.repository.PointRepository;
 import data.repository.UserRepository;
@@ -40,7 +41,7 @@ public class PointService {
 
     // 포인트 이용 내역
     public Map<String, Object> getPagePoint (HttpServletRequest request, Pageable pageRequest) {
-        long idx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
+        long idx = jwtService.extractIdxFromRequest(request);
 
         Page<PointDto> result =  pointRepository.findByUserEntity_idx(idx, pageRequest).map(PointDto::toPointDto);
 
@@ -55,7 +56,7 @@ public class PointService {
     }
 
     public int getTotalPoint (HttpServletRequest request) {
-        long idx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
+        long idx = jwtService.extractIdxFromRequest(request);
         log.info("idx = " + idx);
         return  pointHistoryRepository.findTotalPointsByMemberIdx(idx);
     }
@@ -64,12 +65,12 @@ public class PointService {
     // 포인트 적립 (A)
     @Transactional
     public void addPointEvent(PointDto dto, HttpServletRequest request) {
-        long idx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
+        long idx = jwtService.extractIdxFromRequest(request);
         int score = dto.getPoint();
 
         // 사용자 정보 조회
         UserEntity user = userRepository.findById(idx)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."));
+                .orElseThrow(UserNotFoundException::new);
 
         // point 추가
         PointEntity point = new PointEntity();
@@ -104,12 +105,12 @@ public class PointService {
     // 포인트 사용 (U)
     @Transactional
     public String usePoint(HttpServletRequest request, int point, String comment) {
-        long idx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
+        long idx = jwtService.extractIdxFromRequest(request);
         try {
 
             // 사용자 정보 조회
             UserEntity user = userRepository.findById(idx)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."));
+                    .orElseThrow(UserNotFoundException::new);
 
             // 사용자의 잔여 포인트 조회
             int totalPoint = pointHistoryRepository.findTotalPointsByMemberIdx(idx);
@@ -133,10 +134,10 @@ public class PointService {
 
             for (Object[] groupPoint : groupPoints) {
                 Integer pointId = (Integer) groupPoint[0];
-                Integer availablePoints = ((Long) groupPoint[1]).intValue();
+                int availablePoints = ((Long) groupPoint[1]).intValue();
                 java.sql.Date expireDate = (java.sql.Date) groupPoint[2];
 
-                if (point <= 0)
+                if (point <= 0) 
                     break;
 
                 int deduction = Math.min(availablePoints, point);
@@ -156,14 +157,14 @@ public class PointService {
 
         Optional<PointEntity> optionalPointEvent = pointRepository.findById(pointIdx);
 
-        if (!optionalPointEvent.isPresent()) {
+        if (optionalPointEvent.isEmpty()) {
             log.info(optionalPointEvent + "포인트 테이블");
             return;
         }
 
         // 이미 취소 됐는지 검증
         if(pointHistoryRepository.existsByOriginIdxAndType(pointIdx, "취소")) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 취소 됐다");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 취소된 포인트 입니다");
         }
 
         PointEntity existingEvent = optionalPointEvent.get();
@@ -172,8 +173,8 @@ public class PointService {
         if ("U".equals(existingEvent.getType())) {
 
             PointEntity cancelEvent = new PointEntity();
-            UserEntity userEntity = existingEvent.getUserEntity(); // 수정된 부분
-            cancelEvent.setUserEntity(userEntity); // 수정된 부분
+            UserEntity userEntity = existingEvent.getUserEntity();
+            cancelEvent.setUserEntity(userEntity);
             cancelEvent.setType("C");
             cancelEvent.setPoint(Math.abs(existingEvent.getPoint())); // 절대값 반환
             cancelEvent.setComment("취소");

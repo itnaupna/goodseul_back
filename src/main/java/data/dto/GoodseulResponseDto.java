@@ -22,6 +22,10 @@ public class GoodseulResponseDto {
     private String userProfile;
     private Integer isPremium;
     private int favoriteCount;
+    private String goodsuleInfo;
+    private String location;
+    private String skill;
+
 
     public GoodseulResponseDto(UserEntity user) {
 
@@ -29,8 +33,11 @@ public class GoodseulResponseDto {
         this.gIdx = goodseul.getIdx();
         this.goodseulName = goodseul.getGoodseulName();
         this.isPremium = goodseul.getIsPremium();
+        this.goodsuleInfo = goodseul.getGoodseulInfo();
+        this.skill = goodseul.getSkill();
 
         this.userProfile = user.getUserProfile();
+        this.location = user.getLocation();
         this.favoriteCount = this.getFavoriteCount();
 
     }

@@ -5,6 +5,8 @@ import data.dto.ReviewResponseDto;
 import data.entity.GoodseulEntity;
 import data.entity.ReviewEntity;
 import data.entity.UserEntity;
+import data.exception.GoodseulNotFoundException;
+import data.exception.UserNotFoundException;
 import data.repository.GoodseulRepository;
 import data.repository.ReviewLikeRepository;
 import data.repository.ReviewRepository;
@@ -88,25 +90,20 @@ public class ReviewService {
     }
 
     public ReviewResponseDto getOneReview(int r_idx) {
-        Optional<ReviewEntity> result = reviewRepository.findById(r_idx);
+        ReviewEntity result = reviewRepository.findById(r_idx).orElseThrow(EntityNotFoundException::new);
 
-        if (result.isPresent()) {
-            ReviewEntity review = result.get();
+            ReviewEntity review = result;
             Integer likeCount = reviewLikeRepository.countReviewLikeEntitiesByReviewEntity_rIdx(review.getRIdx());
             return new ReviewResponseDto(review, likeCount);
-        } else {
-            throw new EntityNotFoundException("해당 " + r_idx + " 리뷰를 찾을 수 없습니다");
-        }
     }
 
 
-    public ReviewDto insertReview(ReviewDto dto) {
-        GoodseulEntity goodseul = goodseulRepository.findById(dto.getG_idx()).orElse(null);
-        UserEntity user = userRepository.findById(dto.getU_idx()).orElse(null);
+    public ReviewDto insertReview(ReviewDto dto, HttpServletRequest request) {
+        long idx = jwtService.extractIdxFromRequest(request);
+        dto.setU_idx(idx);
 
-        if (goodseul == null || user == null) {
-            throw new RuntimeException("구슬님이나 유저를 찾을 수 없어요!");
-        }
+        GoodseulEntity goodseul = goodseulRepository.findById(dto.getG_idx()).orElseThrow(GoodseulNotFoundException::new);
+        UserEntity user = userRepository.findById(idx).orElseThrow(UserNotFoundException::new);
 
         ReviewEntity review = ReviewEntity.toReviewEntity(dto, goodseul, user);
         reviewRepository.save(review);

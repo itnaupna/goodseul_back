@@ -17,6 +17,12 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>("해당 유저가 존재하지 않습니다.", HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(GoodseulNotFoundException.class)
+    public final ResponseEntity<String> handleUserNotFoundException(GoodseulNotFoundException goodseulNotFoundException) {
+        log.debug("해당 구슬이 존재하지 않습니다.", goodseulNotFoundException);
+        return new ResponseEntity<>("해당 구슬이 존재하지 않습니다.", HttpStatus.NOT_FOUND);
+    }
+
     @ExceptionHandler(TokenExpiredException.class)
     public final ResponseEntity<String> handleTokenExpiredException(TokenExpiredException tokenExpiredException) {
         log.debug("토큰이 만료되었습니다.", tokenExpiredException);
@@ -90,4 +96,11 @@ public class GlobalExceptionHandler {
         log.debug("제목과 내용을 적어주세요");
         return new ResponseEntity<>("제목과 내용을 적어주세요",HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(AlreadyProcessException.class)
+    public final ResponseEntity<String> handleAlreadyProcessException(AlreadyProcessException alreadyProcessException) {
+        log.debug("이미 처리 된 요청입니다.", alreadyProcessException);
+        return new ResponseEntity<>("이미 처리 되었습니다.",HttpStatus.BAD_REQUEST);
+    }
+
 }

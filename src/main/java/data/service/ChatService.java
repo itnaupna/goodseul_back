@@ -83,7 +83,7 @@ public class ChatService {
         for(ChatEntity entity : list) {
             chatDtos.add(new ChatResponseDto(entity.getSender(),entity.getReceiver(),entity.getMessage(),entity.getSendTime(),entity.isReadCheck(),entity.getRoomId()));
         }
-
+        Collections.reverse(chatDtos);
         return chatDtos;
     }
 

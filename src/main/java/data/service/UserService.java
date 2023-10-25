@@ -2,14 +2,18 @@ package data.service;
 
 import data.dto.GoodseulDto;
 import data.dto.GoodseulInfoDto;
+import data.dto.MyPageResponseDto;
 import data.dto.UserDto;
+import data.entity.ChatRoomEntity;
 import data.entity.GoodseulEntity;
 import data.entity.UserEntity;
-import data.exception.*;
 import data.repository.GoodseulRepository;
 import data.repository.UserRepository;
 import data.service.file.StorageService;
 import jwt.setting.config.Role;
+
+import jwt.setting.config.SocialType;
+import jwt.setting.handler.LoginSuccessHandler;
 import jwt.setting.settings.JwtService;
 import lombok.extern.slf4j.Slf4j;
 import net.nurigo.sdk.NurigoApp;
@@ -44,6 +48,11 @@ public class UserService {
     private final UserRepository userRepository;
     private final GoodseulRepository goodseulRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserCouponRepository userCouponRepository;
+    private final PointHistoryRepository pointHistoryRepository;
+    private final ReviewRepository reviewRepository;
+    private final FavoriteRepository favoriteRepository;
+    private final ChatRoomRepository chatRoomRepository;
 
     private final JwtService jwtService;
     private final DefaultMessageService messageService;
@@ -51,10 +60,15 @@ public class UserService {
     private final String USER_PROFILE_PATH="userprofile";
     private final String CAREER_PATH="career";
 
-    public UserService(UserRepository userRepository, GoodseulRepository goodseulRepository, PasswordEncoder passwordEncoder, JwtService jwtService, StorageService storageService) {
+    public UserService(UserRepository userRepository, GoodseulRepository goodseulRepository, PasswordEncoder passwordEncoder, CouponRepository couponRepository, UserCouponRepository userCouponRepository, PointHistoryRepository pointHistoryRepository, ReviewRepository reviewRepository, FavoriteRepository favoriteRepository, ChatRoomRepository chatRoomRepository, JwtService jwtService, StorageService storageService) {
         this.userRepository = userRepository;
         this.goodseulRepository = goodseulRepository;
         this.passwordEncoder = passwordEncoder;
+        this.userCouponRepository = userCouponRepository;
+        this.pointHistoryRepository = pointHistoryRepository;
+        this.reviewRepository = reviewRepository;
+        this.favoriteRepository = favoriteRepository;
+        this.chatRoomRepository = chatRoomRepository;
         this.jwtService = jwtService;
         this.storageService = storageService;
         this.messageService = NurigoApp.INSTANCE.initialize("NCSRLOLZ8HFH6SU6","GGK9IOYOQN3SHLF4P8X6VBNOILRNWPXV","https://api.coolsms.co.kr");
@@ -76,6 +90,7 @@ public class UserService {
                 .phoneNumber(userDto.getPhoneNumber())
                 .location(userDto.getLocation())
                 .birth(userDto.getBirth())
+                .isGoodseul(null)
                 .role(Role.USER)
                 .build(); // 최종적으로 객체를 반환
         user.passwordEncode(passwordEncoder); // 사용자 비밀번호를 암호화하기 위한 Spring Security의 비밀번호 인코딩
@@ -191,6 +206,7 @@ public class UserService {
             throw new DuplicateEmailException();
         }
     }
+
     //닉네임 유효성 검사
     public void nicknameCheck(String nickname) {
         if (userRepository.existsByNickname(nickname)) {
@@ -230,11 +246,9 @@ public class UserService {
 
     public GoodseulInfoDto getGoodseulInfo(long idx) {
        GoodseulInfoDto goodseulInfoDto = new GoodseulInfoDto();
-        UserEntity user = userRepository.findByIdx(idx)
-                .orElseThrow(UserNotFoundException::new);
-        goodseulInfoDto.setUserDto(UserDto.toUserDto(user));
-       goodseulInfoDto.setUserDto(UserDto.toUserDto(userRepository.findByIdx(idx).get()));
-       goodseulInfoDto.setGoodseulDto(GoodseulDto.toGoodseulDto(goodseulRepository.findByIdx(goodseulInfoDto.getUserDto().getIsGoodseul()).get()));
+       GoodseulEntity goodseulEntity = goodseulRepository.findByIdx(idx).orElseThrow(GoodseulNotFoundException::new);
+       goodseulInfoDto.setGoodseulDto(GoodseulDto.toGoodseulDto(goodseulEntity));
+       goodseulInfoDto.setUserDto(UserDto.toUserDto(userRepository.findByIsGoodseul_Idx(goodseulEntity.getIdx()).orElseThrow(UserNotFoundException::new)));
        return goodseulInfoDto;
     }
 
@@ -298,6 +312,7 @@ public class UserService {
             log.error("탈퇴 실패", e);
             return false;
         }
+        return false;
     }
 
     private void signOut(UserEntity user) {
@@ -325,7 +340,6 @@ public class UserService {
         userRepository.save(user);
     }
 
-
     //사용자 프로필 사진 업데이트
     public String updatePhoto(MultipartFile upload, HttpServletRequest request) throws IOException {
         if (upload.isEmpty()) {
@@ -338,6 +352,45 @@ public class UserService {
         user.setUserProfile(fileName);
         userRepository.save(user);
         return fileName;
+    }
+
+    public String getUserEmail(HttpServletRequest request) {
+        long userIdx = jwtService.extractIdxFromRequest(request);
+        return userRepository.findByIdx(userIdx).orElseThrow(UserNotFoundException::new).getEmail();
+    }
+
+    public MyPageResponseDto getMypageData(HttpServletRequest request) {
+        long userIdx = jwtService.extractIdxFromRequest(request);
+        MyPageResponseDto dto = new MyPageResponseDto();
+
+        String email = userRepository.findByIdx(userIdx).orElseThrow(UserNotFoundException::new).getEmail();
+        int couponCount = userCouponRepository.countAllByUserEntity_Idx(userIdx);
+        int myPoint = pointHistoryRepository.findTotalPointsByMemberIdx(userIdx);
+        int reviewCount = reviewRepository.countAllByUserEntity_Idx(userIdx);
+        int favoriteCount = favoriteRepository.countAllByUserEntity_Idx(userIdx);
+        int chatRoomCount = 0;
+
+        dto.setEmail(email);
+        log.info("Email : {}",email);
+
+        dto.setCouponCount(couponCount);
+        log.info("Coupon Count : {}",couponCount);
+
+        dto.setMyPoint(myPoint);
+        log.info("Point : {}",myPoint);
+
+        dto.setReviewCount(reviewCount);
+        log.info("Review Count : {}", reviewCount);
+
+        dto.setFavoriteCount(favoriteCount);
+        log.info("Favorite Count : {}", favoriteCount);
+
+        List<ChatRoomEntity> list = chatRoomRepository.findByRoomIdStartingWithOrRoomIdEndingWithOrderByLastChatTimeDesc(userIdx + "to", "to" + userIdx);
+        chatRoomCount = list.size();
+        dto.setChatRoomCount(chatRoomCount);
+        log.info("ChatRoom Count : {}",chatRoomCount);
+
+        return dto;
     }
 
 }

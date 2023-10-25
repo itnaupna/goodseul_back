@@ -4,12 +4,15 @@ import data.dto.FavoriteResponseDto;
 import data.dto.GoodseulResponseDto;
 import data.entity.GoodseulEntity;
 import data.entity.UserEntity;
+import data.exception.UserNotFoundException;
 import data.repository.FavoriteRepository;
 import data.repository.GoodseulRepository;
 import data.repository.UserRepository;
 import jwt.setting.config.Role;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityNotFoundException;
 import java.util.*;
@@ -38,7 +41,7 @@ public class OnlineUserService {
     }
 
     public void removeUser(Long idx) {
-        UserEntity userEntity = userRepository.findById(idx).orElseThrow(() -> new RuntimeException("유저를 찾을 수 없음"));
+        UserEntity userEntity = userRepository.findById(idx).orElseThrow(UserNotFoundException::new);
         logOnlineGoodsuleUsers();
         if (userEntity.getRole() == Role.GOODSEUL) {
             onlineGoodsuleUsers.remove(idx);
@@ -54,10 +57,12 @@ public class OnlineUserService {
             Long userId = entry.getKey();
             UserEntity user = entry.getValue();
             Optional<GoodseulEntity> goodseul = goodseulRepository.findByIdx(user.getIsGoodseul().getIdx());
+            log.info("goodseul: {}",goodseul);
             if(goodseul.isPresent()) {
                 GoodseulEntity goodseulEntity = goodseul.get();
                 int favoriteCount = favoriteRepository.countFavoriteEntitiesByGoodseulEntity_idx(goodseulEntity.getIdx());
-                list.add(new GoodseulResponseDto(goodseulEntity.getIdx(), goodseulEntity.getGoodseulName(), user.getUserProfile(), user.getIsGoodseul().getIsPremium(), favoriteCount));
+                list.add(new GoodseulResponseDto(goodseulEntity.getIdx(), goodseulEntity.getGoodseulName(), user.getUserProfile(), goodseulEntity.getIsPremium(),
+                        favoriteCount, goodseulEntity.getGoodseulInfo(), user.getLocation(), goodseulEntity.getSkill()));
             } else {
                 throw new EntityNotFoundException();
             }
@@ -75,7 +80,8 @@ public class OnlineUserService {
                 if (goodseul.isPresent()) {
                     GoodseulEntity goodseulEntity = goodseul.get();
                     int favoriteCount = favoriteRepository.countFavoriteEntitiesByGoodseulEntity_idx(goodseulEntity.getIdx());
-                    list.add(new GoodseulResponseDto(goodseulEntity.getIdx(), goodseulEntity.getGoodseulName(), user.getUserProfile(), user.getIsGoodseul().getIsPremium(), favoriteCount));
+                    list.add(new GoodseulResponseDto(goodseulEntity.getIdx(), goodseulEntity.getGoodseulName(), user.getUserProfile(), goodseulEntity.getIsPremium(),
+                            favoriteCount, goodseulEntity.getGoodseulInfo(), user.getLocation(), goodseulEntity.getSkill()));
                 } else {
                     throw new EntityNotFoundException();
                 }
@@ -90,11 +96,13 @@ public class OnlineUserService {
         for (Map.Entry<Long, UserEntity> entry : onlineGoodsuleUsers.entrySet()) {
             UserEntity user = entry.getValue();
             Optional<GoodseulEntity> goodseul = goodseulRepository.findByIdx(user.getIsGoodseul().getIdx());
+            log.info("goodseul: {}",goodseul);
 
             if(goodseul.isPresent()) {
                 GoodseulEntity goodseulEntity = goodseul.get();
                 Integer favoriteCount = favoriteRepository.countFavoriteEntitiesByGoodseulEntity_idx(goodseulEntity.getIdx());
-                resultList.add(new GoodseulResponseDto(goodseulEntity.getIdx(), goodseulEntity.getGoodseulName(), user.getUserProfile(), user.getIsGoodseul().getIsPremium(), favoriteCount));
+                resultList.add(new GoodseulResponseDto(goodseulEntity.getIdx(), goodseulEntity.getGoodseulName(), user.getUserProfile(), goodseulEntity.getIsPremium(),
+                        favoriteCount, goodseulEntity.getGoodseulInfo(), user.getLocation(), goodseulEntity.getSkill()));
             } else {
                 throw new EntityNotFoundException();
             }
@@ -129,7 +137,7 @@ public class OnlineUserService {
             Long userId = entry.getKey();
             UserEntity user = entry.getValue();
 
-                    Long goodseulId = user.getIsGoodseul().getIdx();
+            Long goodseulId = user.getIsGoodseul().getIdx();
             Integer favoriteCount = favoriteRepository.countFavoriteEntitiesByGoodseulEntity_idx(goodseulId);
 
             log.info("User ID: {}, Profile: {}, Nickname: {}, IsGoodseul: {}, FavoriteCount: {}",

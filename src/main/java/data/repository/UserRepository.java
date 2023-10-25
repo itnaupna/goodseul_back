@@ -21,8 +21,7 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     Optional<UserEntity> findByRefreshToken(String refreshToken);
     Optional<UserEntity> findByPhoneNumber(String phoneNumber);
     Optional<UserEntity> findBySocialTypeAndSocialId(SocialType socialType, String socialId);
-
-    Optional<UserEntity> findByIsGoodseul(Long idGoodseul);
+    Optional<UserEntity> findByIsGoodseul_Idx(Long idx);
     Page<UserEntity> findAll(Pageable pageable);
 
 

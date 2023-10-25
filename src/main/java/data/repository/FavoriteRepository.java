@@ -15,4 +15,5 @@ public interface FavoriteRepository extends JpaRepository <FavoriteEntity, Integ
     Optional<FavoriteEntity> findByUserEntity_idxAndGoodseulEntity_idx(Long u_idx, Long g_idx);
     Integer countFavoriteEntitiesByGoodseulEntity_idx(Long g_idx);
     Page<FavoriteEntity> findByUserEntity_idx(Long u_idx, Pageable pageable);
+    int countAllByUserEntity_Idx(long u_idx);
 }

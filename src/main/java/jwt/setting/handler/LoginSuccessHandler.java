@@ -55,8 +55,6 @@ public class LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
                         onlineUserService.logOnlineGoodsuleUsers();
                     }
 
-                    onlineUserService.logOnlineGoodsuleFavorite();
-
                 });
 
         log.info("로그인에 성공하였습니다. 이메일 : {}", id);

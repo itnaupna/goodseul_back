@@ -16,5 +16,7 @@ public interface UserCouponRepository extends JpaRepository<UserCouponEntity, In
             "AND uc.ucpStatus = 'N'")
     Page<UserCouponEntity> findByMemberIdx(@Param("idx") long idx, Pageable pageable);
 
+    int countAllByUserEntity_Idx(long idx);
+
 
 }

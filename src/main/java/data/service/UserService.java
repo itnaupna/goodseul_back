@@ -1,14 +1,11 @@
 package data.service;
 
-import data.dto.GoodseulDto;
-import data.dto.GoodseulInfoDto;
-import data.dto.MyPageResponseDto;
-import data.dto.UserDto;
+import data.dto.*;
 import data.entity.ChatRoomEntity;
 import data.entity.GoodseulEntity;
 import data.entity.UserEntity;
-import data.repository.GoodseulRepository;
-import data.repository.UserRepository;
+import data.exception.*;
+import data.repository.*;
 import data.service.file.StorageService;
 import jwt.setting.config.Role;
 
@@ -156,9 +153,24 @@ public class UserService {
     }
 
     //구슬님 지역별 페이징
-    public Page<GoodseulDto> goodseulPaging(String location,int page){
+    public List<GoodseulListDto> goodseulPaging(String location, int page){
         PageRequest pageable = PageRequest.of(page, 5,Sort.by(Sort.Direction.ASC,"idx"));
-        return userRepository.findGoodseulIdxByLocation(location, pageable);
+        List<GoodseulDto> goodList = userRepository.findGoodseulIdxByLocation(location, pageable).getContent();
+
+        List<GoodseulListDto> resultList = new ArrayList<>();
+
+        for(GoodseulDto goodseulDto : goodList){
+            GoodseulListDto goodseulListDto = new GoodseulListDto();
+
+            goodseulListDto.setGoodseulDto(goodseulDto);
+            goodseulListDto.setUserProfile(userRepository.findByIsGoodseul_Idx(goodseulDto.getIdx()).orElseThrow(GoodseulNotFoundException::new).getUserProfile());
+
+//
+//            goodseulListDto.setAvgStar();
+
+            resultList.add(goodseulListDto);
+        }
+        return  resultList;
     }
 
     //목적별 리스트
@@ -312,7 +324,7 @@ public class UserService {
             log.error("탈퇴 실패", e);
             return false;
         }
-        return false;
+
     }
 
     private void signOut(UserEntity user) {

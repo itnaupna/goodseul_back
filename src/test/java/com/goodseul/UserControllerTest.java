@@ -68,4 +68,8 @@ public class UserControllerTest {
         verify(userService).findByEmail(name, phone, birth);
 
     }
+//    @Test
+//    void findId_WhenUserList(){
+//        String
+//    }
 }

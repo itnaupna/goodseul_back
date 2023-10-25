@@ -107,17 +107,12 @@ public class UserController {
     }
 
     //구슬님 지역별 조회
-    //구슬님 지역별 조회
     @GetMapping("/lv0/gslocation")
     @ApiOperation(value = "구슬님 지역별 조회 API", notes = "지정된 지역의 구슬님 목록을 페이징 처리하여 반환합니다.")
     public ResponseEntity<?> getGoodseulIdxByLocation(
             @ApiParam(value = "페이지 번호 (기본값: 0)", defaultValue = "0") @RequestParam(value = "page", defaultValue = "0") Integer page,
             @ApiParam(value = "조회할 지역 (기본값: 서울)", defaultValue = "서울") @RequestParam(value = "location", defaultValue = "서울") String location) {
-
-        Page<GoodseulDto> gsPage = userService.goodseulPaging(location, page);
-            List<GoodseulDto> pageGsList = gsPage.getContent();
-
-            return new ResponseEntity<>(pageGsList, HttpStatus.OK);
+            return new ResponseEntity<>(userService.goodseulPaging(location,page), HttpStatus.OK);
         }
     @GetMapping("/lv0/gsskill")
     @ApiOperation(value = "구슬님 목적별 조회 API", notes = "지정된 목적을 가진 구슬님 목록을 페이징 처리하여 반환합니다.")

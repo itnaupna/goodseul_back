@@ -6,5 +6,4 @@ import lombok.Data;
 public class GoodseulInfoDto {
     private GoodseulDto goodseulDto;
     private UserDto userDto;
-
 }

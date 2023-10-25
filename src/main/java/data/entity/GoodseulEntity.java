@@ -1,5 +1,6 @@
 package data.entity;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import data.dto.GoodseulDto;
 import jwt.setting.config.Role;
 import jwt.setting.config.SocialType;
 import lombok.*;
@@ -41,4 +42,5 @@ public class GoodseulEntity{
 
     @OneToMany(mappedBy = "isGoodseul")
     private List<UserEntity> users;
+
 }

@@ -19,6 +19,8 @@ import java.util.Optional;
 public interface GoodseulRepository extends JpaRepository<GoodseulEntity, Long> {
     Optional<GoodseulEntity> findByIdx(Long idx);
     Page<GoodseulEntity> findAll(Pageable pageable);
-    @Query("SELECT new data.dto.GoodseulDto(g.idx, g.goodseulName, g.skill, g.career, g.goodseulProfile, g.goodseulInfo) FROM GoodseulEntity g WHERE g.skill = :skill")
+    @Query("SELECT new data.dto.GoodseulDto(g.idx,g.goodseulName, g.skill, g.career, g.goodseulInfo) FROM GoodseulEntity g WHERE g.skill = :skill")
     Page<GoodseulDto> findGoodseulIdxBySkill(@Param("skill") String skill, Pageable pageable);
+
+
 }

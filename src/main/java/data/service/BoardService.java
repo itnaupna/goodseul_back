@@ -6,6 +6,7 @@ import data.dto.CommentResponseDto;
 import data.entity.BoardEntity;
 import data.entity.CommentEntity;
 import data.entity.UserEntity;
+import data.exception.*;
 import data.repository.BoardRepository;
 import data.repository.CommentRepository;
 import data.repository.OfferRepository;
@@ -15,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +25,7 @@ import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -49,19 +51,15 @@ public class BoardService {
 
     //게시판 작성
     public void boardWrite(HttpServletRequest request,BoardDto boardDto) {
-        if(boardDto.getSubject() == null || boardDto.getContent() == null){
-            throw new IllegalArgumentException("게시글의 제목과 내용은 필수입니다");
+        if (Objects.equals(boardDto.getSubject(), "") || Objects.equals(boardDto.getContent(), "")) {
+            throw new SubjectContentNotFoundException();
         }
-        String nickname = jwtService.extractNickname(jwtService.extractAccessToken(request)
-                        .orElseThrow(() -> new JwtException("Access Token이 존재하지 않습니다.")))
-                .orElseThrow(() -> new JwtException("닉네임을 찾을 수 없습니다."));
+        String nickname = jwtService.extractNickname(jwtService.extractAccessToken(request).orElseThrow(TokenException::new))
+                .orElseThrow(DuplicateNicknameException::new);
 
-        Long userIdx = jwtService.extractIdx(jwtService.extractAccessToken(request)
-                        .orElseThrow(() -> new JwtException("Access Token이 존재하지 않습니다.")))
-                .orElseThrow(() -> new JwtException("사용자 인덱스를 찾을 수 없습니다."));
-
+        Long userIdx = jwtService.extractIdxFromRequest(request);
         UserEntity user = userRepository.findByIdx(userIdx)
-                .orElseThrow(() -> new EntityNotFoundException("사용자를 데이터베이스에서 찾을 수 없습니다."));
+                .orElseThrow(UserNotFoundException::new);
 
         BoardEntity board = BoardEntity.builder()
                 .subject(boardDto.getSubject())
@@ -77,10 +75,10 @@ public class BoardService {
     //게시판 수정
     public void boardUpdate(Long idx, BoardDto boardDto){
         BoardEntity board = boardRepository.findByIdx(idx)
-                .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다."));
+                .orElseThrow(BoardNotFoundException::new);
+        if (Objects.equals(boardDto.getSubject(), "") || Objects.equals(boardDto.getContent(), "")) {
 
-        if (boardDto.getSubject() == null || boardDto.getContent() == null) {
-            throw new IllegalArgumentException("게시글의 제목과 내용은 필수입니다.");
+            throw new SubjectContentNotFoundException();
         }
         board.setSubject(boardDto.getSubject());
         board.setContent(boardDto.getContent());
@@ -100,20 +98,22 @@ public class BoardService {
 
     //게시판 삭제
     public void boardDelete(Long idx){
+        BoardEntity board = boardRepository.findByIdx(idx)
+                        .orElseThrow(BoardNotFoundException::new);
         boardRepository.deleteAllByIdx(idx);
     }
 
     //댓글 삭제
     public void commentDelete(Long idx){
+        CommentEntity comment = commentRepository.findByIdx(idx)
+                .orElseThrow(CommentNotFoundException::new);
         commentRepository.deleteByIdx(idx);
     }
+
     //게시판 상세보기
     public BoardDto boardDetail(Long idx){
-        Optional<BoardEntity> boardOptional = boardRepository.findByIdx(idx);
-        if (!boardOptional.isPresent()) {
-            throw new RuntimeException("게시글을 찾을 수 없습니다.");
-        }
-        BoardEntity board = boardOptional.get();
+        BoardEntity board = boardRepository.findByIdx(idx)
+                .orElseThrow(BoardNotFoundException::new);
         BoardDto dto = new BoardDto();
         dto.setIdx(board.getIdx());
         dto.setSubject(board.getSubject());
@@ -136,26 +136,27 @@ public class BoardService {
     }
 
     //게시판 검색 + 리스트 + 페이징
-    public Page<BoardDto> searchByCategoryAndKeyword(String category, String keyword, int page){
-        PageRequest pageable = PageRequest.of(page, 4, Sort.by(Sort.Direction.ASC,"idx"));
+    public Page<BoardDto> searchByCategoryAndKeyword(String category, String keyword, int page) {
+
+        PageRequest pageable = PageRequest.of(page, 4, Sort.by(Sort.Direction.ASC, "idx"));
         Page<BoardEntity> boards = boardRepository.findByCategoryAndSubjectContaining(category, keyword, pageable);
-        return boards.map(board -> toBoardDto(board));
+        return boards.map(BoardDto::toBoardDto);
     }
 
     //댓글 생성
     @Transactional
     public Long CommentSave(HttpServletRequest request, Long idx, CommentRequestDto dto) {
         try {
-            String nickname = jwtService.extractNickname(jwtService.extractAccessToken(request).orElseThrow(() -> new RuntimeException("Access Token이 존재하지 않습니다.")))
-                    .orElseThrow(() -> new RuntimeException("닉네임을 찾을 수 없습니다."));
+            String nickname = jwtService.extractNickname(jwtService.extractAccessToken(request).orElseThrow(TokenException::new))
+                    .orElseThrow(DuplicateNicknameException::new);
 
             UserEntity user = userRepository.findByNickname(nickname)
-                    .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다"));
+                    .orElseThrow(UserNotFoundException::new);
 
             BoardEntity board = boardRepository.findByIdx(idx)
-                    .orElseThrow(() -> new EntityNotFoundException("게시물을 찾을 수 없습니다"));
+                    .orElseThrow(BoardNotFoundException::new);
             if (dto.getContent() == null || dto.getContent().trim().isEmpty()) {
-                throw new IllegalArgumentException("댓글 내용은 비어 있을 수 없습니다.");
+                throw new CommnetContentNotFoundException();
             }
             dto.setUser(user);
             dto.setBoards(board);

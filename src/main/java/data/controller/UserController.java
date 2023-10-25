@@ -173,19 +173,24 @@ public class UserController {
     //이메일 유효성 검사
     @PostMapping("/lv0/emailcheck")
     @ApiOperation(value = "이메일 확인 API", notes = "제공된 이메일 주소가 유효한지 확인합니다.")
-    public boolean checkEmail(
+    public ResponseEntity<String> checkEmail(
             @ApiParam(value = "확인할 이메일 정보가 포함된 Json", required = true) @RequestBody JsonNode jsonNode) {
-        log.info(jsonNode.get("email").asText());
-        return userService.emailCheck(jsonNode.get("email").asText());
+
+        userService.emailCheck(jsonNode.get("email").asText());
+
+        return new ResponseEntity<>("이메일 주소를 사용할 수 있습니다.", HttpStatus.OK);
     }
 
 
     // 닉네임 유효성 검사
     @PostMapping("/lv0/nicknamecheck")
     @ApiOperation(value = "닉네임 유효성 검사 API", notes = "제공된 닉네임이 유효한지 확인합니다.")
-    public boolean checknickname(
+    public ResponseEntity<String> checknickname(
             @ApiParam(value = "확인할 닉네임 정보가 포함된 Json", required = true) @RequestBody JsonNode jsonNode) {
-        return userService.nicknameCheck(jsonNode.get("nickname").asText());
+
+        userService.nicknameCheck(jsonNode.get("nickname").asText());
+
+        return new ResponseEntity<>("닉네임을 사용할 수 있습니다.", HttpStatus.OK);
     }
 
 

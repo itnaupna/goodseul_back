@@ -71,18 +71,23 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>("올바르지 않은 확장자입니다.",HttpStatus.UNSUPPORTED_MEDIA_TYPE);
     }
     @ExceptionHandler(BoardNotFoundException.class)
-    public final ResponseEntity<String> BoardNotFoundException(BoardNotFoundException e){
-        log.debug("dd",e);
+    public final ResponseEntity<String> BoardNotFoundException(BoardNotFoundException boardNotFoundException){
+        log.debug("게시글을 찾을 수 없습니다",boardNotFoundException);
         return new ResponseEntity<>("게시글을 찾을 수 없습니다",HttpStatus.NOT_FOUND);
     }
-    @ExceptionHandler(UserConflictException.class)
-    public final ResponseEntity<String> handleUserConflictException(UserConflictException e) {
-        return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+    @ExceptionHandler(CommnetContentNotFoundException.class)
+    public final ResponseEntity<String> CommentContentNotFoundException(CommnetContentNotFoundException commnetContentNotFoundException) {
+        log.debug("댓글의 내용은 빈값일 수 없습니다.");
+        return new ResponseEntity<>("댓글의 내용은 빈값일 수 없습니다.",HttpStatus.BAD_REQUEST);
     }
-
-    @ExceptionHandler(UserNotFoundException.class)
-    public final ResponseEntity<String> handleUserNotFoundException(UserNotFoundException e){
-        return new ResponseEntity<>(e.getMessage(),HttpStatus.NOT_FOUND);
+    @ExceptionHandler(CommentNotFoundException.class)
+    public final ResponseEntity<String> HandleCommentNotFoundException(CommentNotFoundException commentNotFoundException){
+        log.debug("댓글을 찾을 수 없습니다");
+        return new ResponseEntity<>("댓글을 찾을 수 없습니다.",HttpStatus.NOT_FOUND);
     }
-
+    @ExceptionHandler(SubjectContentNotFoundException.class)
+    public final ResponseEntity<String> HandleSubjectContentNotFoundException(SubjectContentNotFoundException subjectContentNotFoundException){
+        log.debug("제목과 내용을 적어주세요");
+        return new ResponseEntity<>("제목과 내용을 적어주세요",HttpStatus.BAD_REQUEST);
+    }
 }

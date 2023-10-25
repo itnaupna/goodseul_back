@@ -5,15 +5,11 @@ import data.dto.GoodseulInfoDto;
 import data.dto.UserDto;
 import data.entity.GoodseulEntity;
 import data.entity.UserEntity;
-import data.exception.UserConflictException;
-import data.exception.UserNotFoundException;
+import data.exception.*;
 import data.repository.GoodseulRepository;
 import data.repository.UserRepository;
 import data.service.file.StorageService;
 import jwt.setting.config.Role;
-
-import jwt.setting.config.SocialType;
-import jwt.setting.handler.LoginSuccessHandler;
 import jwt.setting.settings.JwtService;
 import lombok.extern.slf4j.Slf4j;
 import net.nurigo.sdk.NurigoApp;
@@ -100,10 +96,10 @@ public class UserService {
         log.info(userDto.getNickname());
 
         if (userRepository.existsByEmail(userDto.getEmail())) {
-            throw new UserConflictException("이미 존재하는 이메일입니다");
+            throw new DuplicateEmailException();
         }
         if (userRepository.existsByNickname(userDto.getNickname())) {
-            throw new UserConflictException("이미 존재하는 닉네임입니다");
+            throw new DuplicateNicknameException();
         }
 
         GoodseulEntity goodseuls = GoodseulEntity.builder()
@@ -170,7 +166,7 @@ public class UserService {
         if (user.isPresent()) {
             return user.get().getPhoneNumber();
         }
-        throw new UserNotFoundException("해당하는 사용자 정보가 없습니다.");
+        throw new UserNotFoundException();
     }
 
     //비밀번호 변경
@@ -185,18 +181,21 @@ public class UserService {
             userRepository.save(user);
             return "완료";
         } else {
-            throw new UserNotFoundException("해당하는 사용자 정보가 없습니다.");
+            throw new UserNotFoundException();
         }
     }
 
     //이메일 유효성 검사
-    public boolean emailCheck(String email) {
-        return userRepository.existsByEmail(email);
+    public void emailCheck(String email) {
+        if (userRepository.existsByEmail(email)) {
+            throw new DuplicateEmailException();
+        }
     }
-
     //닉네임 유효성 검사
-    public boolean nicknameCheck(String nickname){
-       return userRepository.existsByNickname(nickname);
+    public void nicknameCheck(String nickname) {
+        if (userRepository.existsByNickname(nickname)) {
+            throw new DuplicateNicknameException();
+        }
     }
     // 핸드폰 번호 유효성 검사
     public boolean phoneCheck(String phoneNumber) {
@@ -205,11 +204,9 @@ public class UserService {
     
     //문자 인증번호 보내기
     public String sendSms(String phoneNumber) {
-        Optional<UserEntity> phoneNumberCheck = userRepository.findByPhoneNumber(phoneNumber);
-        if(!phoneNumberCheck.isPresent()){
-            return "없습니다";
-        }
-        phoneNumberCheck.get().setPhoneNumber(phoneNumber);
+        UserEntity user = userRepository.findByPhoneNumber(phoneNumber)
+                .orElseThrow(UserNotFoundException::new);
+        user.setPhoneNumber(phoneNumber);
         String authnum = generateRandomNumber(4);
         Message message = new Message();
         message.setFrom("01076331961");
@@ -233,9 +230,11 @@ public class UserService {
 
     public GoodseulInfoDto getGoodseulInfo(long idx) {
        GoodseulInfoDto goodseulInfoDto = new GoodseulInfoDto();
+        UserEntity user = userRepository.findByIdx(idx)
+                .orElseThrow(UserNotFoundException::new);
+        goodseulInfoDto.setUserDto(UserDto.toUserDto(user));
        goodseulInfoDto.setUserDto(UserDto.toUserDto(userRepository.findByIdx(idx).get()));
        goodseulInfoDto.setGoodseulDto(GoodseulDto.toGoodseulDto(goodseulRepository.findByIdx(goodseulInfoDto.getUserDto().getIsGoodseul()).get()));
-
        return goodseulInfoDto;
     }
 
@@ -246,14 +245,13 @@ public class UserService {
 
     //회원 업데이트
     public void updateUser(HttpServletRequest request, UserDto userDto){
-        Long userIdx = jwtService.extractIdx(jwtService.extractAccessToken(request).orElseThrow(() -> new RuntimeException("Access Token이 존재하지 않습니다.")))
-                .orElseThrow(() -> new RuntimeException("사용자 인덱스를 찾을 수 없습니다."));
+        Long userIdx = jwtService.extractIdxFromRequest(request);
         UserEntity user = userRepository.findByIdx(userIdx)
-                .orElseThrow(() -> new RuntimeException("사용자를 데이터베이스에서 찾을 수 없습니다."));
+                .orElseThrow(UserNotFoundException::new);
 
         if(!user.getIdx().equals(userIdx)){
             log.error("불일치");
-            throw new RuntimeException("수정 권한이 없습니다");
+
         }
         user.setBirth(userDto.getBirth());
         user.setLocation(userDto.getLocation());
@@ -265,10 +263,9 @@ public class UserService {
 
     //구슬 업데이트
     public void updateGoodseul(HttpServletRequest request, GoodseulDto goodseulDto){
-        Long userIdx = jwtService.extractIdx(jwtService.extractAccessToken(request).orElseThrow(() -> new RuntimeException("Access Token이 존재하지 않습니다.")))
-                .orElseThrow(() -> new RuntimeException("사용자 인덱스를 찾을 수 없습니다."));
+        Long userIdx = jwtService.extractIdxFromRequest(request);
         UserEntity user = userRepository.findByIdx(userIdx)
-                .orElseThrow(() -> new RuntimeException("사용자를 데이터베이스에서 찾을 수 없습니다."));
+                .orElseThrow(UserNotFoundException::new);
         GoodseulEntity goodseul = goodseulRepository.findByIdx(user.getIsGoodseul().getIdx()).get();
         goodseul.setCareer(goodseulDto.getCareer());
         goodseul.setGoodseulName(goodseulDto.getGoodseulName());
@@ -285,23 +282,25 @@ public class UserService {
     }
 
     // 회원 탈퇴
-    public boolean signOut (HttpServletRequest request) {
-        long idx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
-        log.info(idx + "= idx");
+    public boolean signOut(HttpServletRequest request) {
+        Long idx = jwtService.extractIdxFromRequest(request);
+        log.info(idx + " = idx");
+
         try {
             Optional<UserEntity> entity = userRepository.findById(idx);
             if(entity.isPresent()) {
-                singOut(entity.get());
-
+                signOut(entity.get());
                 return true;
+            } else {
+                throw new UserNotFoundException();
             }
         } catch (Exception e) {
-            log.info("탈퇴 실패" + e.getMessage());
+            log.error("탈퇴 실패", e);
             return false;
         }
-        return false;
     }
-    private void singOut(UserEntity user) {
+
+    private void signOut(UserEntity user) {
         user.setEmail("");
         user.setName(user.getName() + "(탈퇴)");
         user.setPassword("");
@@ -312,23 +311,30 @@ public class UserService {
         user.setSocialId("");
 
         if(user.getIsGoodseul() != null) {
-            GoodseulEntity goodseul = goodseulRepository.findByIdx(user.getIsGoodseul().getIdx()).get();
-            goodseul.setCareer("");
-            goodseul.setGoodseulName(goodseul.getGoodseulName() + "(탈퇴)");
-            goodseul.setGoodseulProfile("");
-            goodseul.setIsPremium(null);
-            goodseul.setPremiumDate(null);
-            goodseul.setSkill("");
+            goodseulRepository.findByIdx(user.getIsGoodseul().getIdx())
+                    .ifPresent(goodseul -> {
+                        goodseul.setCareer("");
+                        goodseul.setGoodseulName(goodseul.getGoodseulName() + "(탈퇴)");
+                        goodseul.setGoodseulProfile("");
+                        goodseul.setIsPremium(null);
+                        goodseul.setPremiumDate(null);
+                        goodseul.setSkill("");
+                    });
         }
 
         userRepository.save(user);
     }
 
+
     //사용자 프로필 사진 업데이트
     public String updatePhoto(MultipartFile upload, HttpServletRequest request) throws IOException {
+        if (upload.isEmpty()) {
+            throw new ImageRoadFailedException();
+        }
         String fileName = storageService.saveFile(upload, USER_PROFILE_PATH);
-        Long idx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
-        UserEntity user = userRepository.findByIdx(idx).get();
+        Long userIdx = jwtService.extractIdxFromRequest(request);
+        UserEntity user = userRepository.findByIdx(userIdx)
+                .orElseThrow(UserNotFoundException::new);
         user.setUserProfile(fileName);
         userRepository.save(user);
         return fileName;

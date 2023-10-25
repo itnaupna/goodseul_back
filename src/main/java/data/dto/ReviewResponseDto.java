@@ -31,6 +31,7 @@ public class ReviewResponseDto {
 
     // 좋아요
     private Integer likeCount;
+    private Boolean likeStatus;
 
     // 구슬의 리뷰 제목
     private String randSubject;

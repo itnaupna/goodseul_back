@@ -13,6 +13,8 @@ import data.repository.*;
 import data.service.file.StorageService;
 import jwt.setting.config.Role;
 
+import jwt.setting.config.SocialType;
+import jwt.setting.handler.LoginSuccessHandler;
 import jwt.setting.settings.JwtService;
 import lombok.extern.slf4j.Slf4j;
 import net.nurigo.sdk.NurigoApp;
@@ -98,8 +100,6 @@ public class UserService {
     public void goodseulSignup(GoodseulDto goodseulDto, UserDto userDto, List<MultipartFile> uploads) throws Exception{
 
         StringBuilder sb = new StringBuilder();
-
-
 
         for(MultipartFile upload : uploads) {
             String fileName = storageService.saveFile(upload, CAREER_PATH);
@@ -240,8 +240,8 @@ public class UserService {
     public GoodseulInfoDto getGoodseulInfo(long idx) {
        GoodseulInfoDto goodseulInfoDto = new GoodseulInfoDto();
        GoodseulEntity goodseulEntity = goodseulRepository.findByIdx(idx).orElseThrow(GoodseulNotFoundException::new);
-       goodseulInfoDto.setGoodseulDto(GoodseulDto.toGoodseulDto(goodseulEntity));
-       goodseulInfoDto.setUserDto(UserDto.toUserDto(userRepository.findByIsGoodseul_Idx(goodseulEntity.getIdx()).orElseThrow(UserNotFoundException::new)));
+        goodseulInfoDto.setGoodseulDto(GoodseulDto.toGoodseulDto(goodseulEntity));
+        goodseulInfoDto.setUserDto(UserDto.toUserDto(userRepository.findByIsGoodseul_Idx(goodseulEntity.getIdx()).orElseThrow(UserNotFoundException::new)));
        return goodseulInfoDto;
     }
 

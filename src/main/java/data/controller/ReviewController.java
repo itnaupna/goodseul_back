@@ -53,9 +53,9 @@ public class ReviewController {
     }
     @ApiOperation(value = "리뷰 디테일 페이지")
     @GetMapping("/lv0/review/{r_idx}")
-    public ResponseEntity<ReviewResponseDto>  getOneReview (@ApiParam(value = "리뷰 인덱스") @PathVariable int r_idx) {
+    public ResponseEntity<ReviewResponseDto>  getOneReview (@ApiParam(value = "리뷰 인덱스") @PathVariable int r_idx, HttpServletRequest request) {
         try {
-            ReviewResponseDto review = reviewService.getOneReview(r_idx);
+            ReviewResponseDto review = reviewService.getOneReview(r_idx, request);
             return new ResponseEntity<>(review, HttpStatus.OK);
         } catch (EntityNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

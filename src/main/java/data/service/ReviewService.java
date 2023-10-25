@@ -92,14 +92,15 @@ public class ReviewService {
     }
 
     public ReviewResponseDto getOneReview(int r_idx, HttpServletRequest request) {
-        long idx = 0;
-        boolean likeStatus = false;
+        long idx;
+        boolean likeStatus;
 
         try {
             idx = jwtService.extractIdxFromRequest(request);
             likeStatus = reviewLikeRepository.countByReviewEntity_rIdxAndUserEntity_idx(r_idx, idx) > 0;
         } catch (Exception e) {
-            log.info("좋아요 조회 (비회원)");
+            idx = 0;
+            likeStatus = false;
         }
         ReviewEntity review = reviewRepository.findById(r_idx).orElseThrow(EntityNotFoundException::new);
         Integer likeCount = reviewLikeRepository.countReviewLikeEntitiesByReviewEntity_rIdx(review.getRIdx());

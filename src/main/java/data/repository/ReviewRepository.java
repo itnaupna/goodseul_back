@@ -31,6 +31,9 @@ public interface ReviewRepository extends JpaRepository <ReviewEntity, Integer> 
 
     int countAllByUserEntity_Idx(long uIdx);
 
+    @Query("SELECT SUM(r.star) / COUNT(r) FROM review r WHERE r.goodseulEntity.idx = :gIdx")
+    Double findAverageStarByGIdx(@Param("gIdx") Long gIdx);
+
 }
 
 

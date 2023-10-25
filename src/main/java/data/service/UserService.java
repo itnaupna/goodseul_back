@@ -164,19 +164,28 @@ public class UserService {
 
             goodseulListDto.setGoodseulDto(goodseulDto);
             goodseulListDto.setUserProfile(userRepository.findByIsGoodseul_Idx(goodseulDto.getIdx()).orElseThrow(GoodseulNotFoundException::new).getUserProfile());
+            goodseulListDto.setAvgStar(reviewRepository.findAverageStarByGIdx(goodseulDto.getIdx()));
 
-//
-//            goodseulListDto.setAvgStar();
-
+            log.info(goodseulListDto.toString());
             resultList.add(goodseulListDto);
         }
+
         return  resultList;
     }
 
     //목적별 리스트
-    public Page<GoodseulDto> skillList(String skill, int page){
+    public List<GoodseulSkillDto> skillList(String skill, int page){
         PageRequest pageable = PageRequest.of(page, 5, Sort.by(Sort.Direction.ASC,"idx"));
-        return goodseulRepository.findGoodseulIdxBySkill(skill, pageable);
+        List<GoodseulDto> goodList=goodseulRepository.findGoodseulIdxBySkill(skill, pageable).getContent();
+        List<GoodseulSkillDto> resultList = new ArrayList<>();
+
+        for(GoodseulDto goodseulDto : goodList){
+            GoodseulSkillDto goodseulSkillDto = new GoodseulSkillDto();
+            goodseulSkillDto.setGoodseulDto(goodseulDto);
+            goodseulSkillDto.setUserProfile(userRepository.findByIsGoodseul_Idx(goodseulDto.getIdx()).orElseThrow(GoodseulNotFoundException::new).getUserProfile());
+            resultList.add(goodseulSkillDto);
+        }
+        return  resultList;
     }
 
     //구슬님 리스트

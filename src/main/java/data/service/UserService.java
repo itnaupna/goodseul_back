@@ -7,6 +7,7 @@ import data.dto.UserDto;
 import data.entity.ChatRoomEntity;
 import data.entity.GoodseulEntity;
 import data.entity.UserEntity;
+import data.exception.GoodseulNotFoundException;
 import data.exception.UserNotFoundException;
 import data.repository.*;
 import data.service.file.StorageService;
@@ -238,9 +239,9 @@ public class UserService {
 
     public GoodseulInfoDto getGoodseulInfo(long idx) {
        GoodseulInfoDto goodseulInfoDto = new GoodseulInfoDto();
-       goodseulInfoDto.setGoodseulDto(GoodseulDto.toGoodseulDto(goodseulRepository.findByIdx(idx).get()));
-       goodseulInfoDto.setUserDto(UserDto.toUserDto(userRepository.findByIsGoodseul(goodseulInfoDto.getGoodseulDto().getIdx()).get()));
-
+       GoodseulEntity goodseulEntity = goodseulRepository.findByIdx(idx).orElseThrow(GoodseulNotFoundException::new);
+       goodseulInfoDto.setGoodseulDto(GoodseulDto.toGoodseulDto(goodseulEntity));
+       goodseulInfoDto.setUserDto(UserDto.toUserDto(userRepository.findByIsGoodseul_Idx(goodseulEntity.getIdx()).orElseThrow(UserNotFoundException::new)));
        return goodseulInfoDto;
     }
 

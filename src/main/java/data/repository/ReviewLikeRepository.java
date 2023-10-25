@@ -14,4 +14,6 @@ public interface ReviewLikeRepository extends JpaRepository <ReviewLikeEntity, I
     Optional<ReviewLikeEntity> findByReviewEntity_rIdxAndUserEntity_idx(int rIdx, Long uIdx);
     Integer countReviewLikeEntitiesByReviewEntity_rIdx(int rIdx);
 
+    Integer countByReviewEntity_rIdxAndUserEntity_idx(int rIdx, long uIdx);
+
 }

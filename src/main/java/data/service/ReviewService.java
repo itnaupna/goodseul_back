@@ -71,7 +71,7 @@ public class ReviewService {
     }
 
     public Map<String, Object> getPageMyReview(int page, int size, String sortProperty, String sortDirection, HttpServletRequest request) {
-        long idx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
+        long idx = jwtService.extractIdxFromRequest(request);
         Sort.Direction direction = Sort.Direction.fromString(sortDirection);
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortProperty));
         Page<ReviewEntity> result = reviewRepository.findByUserEntity_Idx(idx, pageable);
@@ -91,12 +91,22 @@ public class ReviewService {
         return response;
     }
 
-    public ReviewResponseDto getOneReview(int r_idx) {
-        ReviewEntity result = reviewRepository.findById(r_idx).orElseThrow(EntityNotFoundException::new);
+    public ReviewResponseDto getOneReview(int r_idx, HttpServletRequest request) {
+        long idx = 0;
+        boolean likeStatus = false;
 
-            ReviewEntity review = result;
-            Integer likeCount = reviewLikeRepository.countReviewLikeEntitiesByReviewEntity_rIdx(review.getRIdx());
-            return new ReviewResponseDto(review, likeCount);
+        try {
+            idx = jwtService.extractIdxFromRequest(request);
+            likeStatus = reviewLikeRepository.countByReviewEntity_rIdxAndUserEntity_idx(r_idx, idx) > 0;
+        } catch (Exception e) {
+            log.info("좋아요 조회 (비회원)");
+        }
+        ReviewEntity review = reviewRepository.findById(r_idx).orElseThrow(EntityNotFoundException::new);
+        Integer likeCount = reviewLikeRepository.countReviewLikeEntitiesByReviewEntity_rIdx(review.getRIdx());
+
+        ReviewResponseDto response = new ReviewResponseDto(review, likeCount);
+        response.setLikeStatus(likeStatus);
+        return response;
     }
 
 

@@ -187,15 +187,6 @@ public class UserService {
         }
         return  resultList;
     }
-
-    //구슬님 리스트
-    public List<GoodseulDto> goodseulList(){
-        List<GoodseulDto> list = new ArrayList<>();
-        for(GoodseulEntity entity : goodseulRepository.findAll()){
-            list.add(GoodseulDto.toGoodseulDto(entity));
-        }
-        return list;
-    }
     //닉네임,이메일,전화번호 유효성 검사
     public String allCheck(String email, String birth, String name) {
         Optional<UserEntity> user = userRepository.findByEmailAndBirthAndName(email, birth, name);

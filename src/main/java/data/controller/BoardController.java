@@ -39,13 +39,9 @@ public class BoardController {
             @ApiResponse(code = 404, message = "사용자 정보를 찾을 수 없습니다."),
             @ApiResponse(code = 500, message = "게시글 작성 중 오류가 발생했습니다.")
     })
-    public ResponseEntity<?> insertBoard(HttpServletRequest request, @RequestBody BoardDto boardDto) {
-        try {
+    public ResponseEntity<BoardDto> insertBoard(HttpServletRequest request, @RequestBody BoardDto boardDto) {
             boardService.boardWrite(request, boardDto);
             return ResponseEntity.ok(boardDto);
-        } catch (JwtException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-        }
     }
 
 //게시판 수정
@@ -55,7 +51,7 @@ public class BoardController {
             @ApiResponse(code = 200, message = "수정 성공"),
             @ApiResponse(code = 404, message = "게시글을 찾을 수 없습니다."),
     })
-    public ResponseEntity<?> boardUpdate(
+    public ResponseEntity<BoardDto> boardUpdate(
             @ApiParam(value = "수정할 게시글의 idx", required = true) @PathVariable Long idx,
             @ApiParam(value = "수정될 게시글의 정보", required = true) @RequestBody BoardDto boardDto) {
             boardService.boardUpdate(idx, boardDto);
@@ -76,7 +72,6 @@ public class BoardController {
             boardService.boardDelete(idx);
             return ResponseEntity.ok("삭제 완료");
         } catch (EntityNotFoundException e) {
-            // 게시글이 존재하지 않을 경우
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("게시글을 찾을 수 없습니다.");
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("게시글 삭제 중 오류가 발생했습니다.");
@@ -104,13 +99,12 @@ public class BoardController {
             @ApiResponse(code = 404, message = "조건에 맞는 게시글이 존재하지 않습니다"),
             @ApiResponse(code = 500, message = "게시글 조회 중 오류가 발생했습니다.")
     })
-    public ResponseEntity<?> searchBoard(
+    public ResponseEntity<List<BoardDto>> searchBoard(
             @ApiParam(value = "조회할 게시판의 카테고리", required = true) @RequestParam("category") String category,
             @ApiParam(value = "검색할 키워드", required = false) @RequestParam(value = "keyword", defaultValue = "") String keyword,
             @ApiParam(value = "페이징 번호", required = false) @RequestParam(value = "page", defaultValue = "0") Integer page) {
-            Page<BoardDto> boards = boardService.searchByCategoryAndKeyword(category, keyword, page);
-            List<BoardDto> boardlist = boards.getContent();
-            return ResponseEntity.ok(boardlist);
+
+            return ResponseEntity.ok(boardService.searchByCategoryAndKeyword(category,keyword,page));
 
     }
 
@@ -125,7 +119,7 @@ public class BoardController {
             @ApiResponse(code = 404, message = "사용자 정보를 찾을 수 없습니다."),
             @ApiResponse(code = 500, message = "댓글 작성 중 오류가 발생했습니다.")
     })
-    public ResponseEntity<?> commentSave(
+    public ResponseEntity<Long> commentSave(
             @ApiParam(value = "댓글을 작성할 게시글의 idx", required = true) @PathVariable Long idx,
             @ApiParam(value = "작성할 댓글의 정보", required = true) @RequestBody CommentRequestDto dto,
             @ApiParam(value = "HttpServletRequest object", required = true) HttpServletRequest request) {
@@ -139,7 +133,7 @@ public class BoardController {
             @ApiResponse(code = 200, message = "상세정보 보기"),
             @ApiResponse(code = 404, message = "게시글을 찾을 수 없습니다.")
     })
-    public ResponseEntity<?> detailBoard(
+    public ResponseEntity<BoardDto> detailBoard(
             @ApiParam(value = "조회할 게시글의 idx", required = true) @PathVariable Long idx) {
             return ResponseEntity.ok(boardService.boardDetail(idx));
 

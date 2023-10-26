@@ -20,6 +20,9 @@ public class UserDto {
     private String birth;
     private String userProfile;
     private long isGoodseul;
+    private String role;
+    private String socialId;
+    private String socialType;
 
     public static UserDto toUserDto (UserEntity entity) {
 

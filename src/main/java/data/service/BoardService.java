@@ -136,11 +136,10 @@ public class BoardService {
     }
 
     //게시판 검색 + 리스트 + 페이징
-    public Page<BoardDto> searchByCategoryAndKeyword(String category, String keyword, int page) {
-
+    public List<BoardDto> searchByCategoryAndKeyword(String category, String keyword, int page) {
         PageRequest pageable = PageRequest.of(page, 4, Sort.by(Sort.Direction.ASC, "idx"));
-        Page<BoardEntity> boards = boardRepository.findByCategoryAndSubjectContaining(category, keyword, pageable);
-        return boards.map(BoardDto::toBoardDto);
+        List<BoardEntity> boards = boardRepository.findByCategoryAndSubjectContaining(category, keyword, pageable).getContent();
+        return boards.stream().map(BoardDto::toBoardDto).collect(Collectors.toList());
     }
 
     //댓글 생성

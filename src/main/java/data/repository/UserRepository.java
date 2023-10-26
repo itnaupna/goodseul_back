@@ -1,11 +1,8 @@
 package data.repository;
 
 import data.dto.GoodseulDto;
-import data.dto.GoodseulListDto;
-import data.entity.GoodseulEntity;
 import jwt.setting.config.SocialType;
 import data.entity.UserEntity;
-import data.entity.ReviewEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,8 +10,6 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
@@ -34,8 +29,6 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     @Modifying
     @Query("UPDATE UserEntity u SET u.refreshToken = NULL WHERE u.idx = ?1")
     void removeRefreshTokenByIdx(Long idx);
-
-    void deleteAllByIdx(Long idx);
 
     Optional<UserEntity> findByNameAndPhoneNumberAndBirth (String name, String phone, String birth);
 

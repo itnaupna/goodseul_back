@@ -19,7 +19,7 @@ public class UserDto {
     private String location;
     private String birth;
     private String userProfile;
-    private long isGoodseul;
+    private Long isGoodseul;
     private String role;
     private String socialId;
     private String socialType;

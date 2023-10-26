@@ -71,7 +71,6 @@ public class UserEntity {
             this.userProfile = "NoImage";
     }
 
-
     public void updateRefreshToken(String updateRefreshToken) {
         this.refreshToken = updateRefreshToken;
     }

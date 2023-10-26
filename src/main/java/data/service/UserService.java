@@ -8,9 +8,7 @@ import data.exception.*;
 import data.repository.*;
 import data.service.file.StorageService;
 import jwt.setting.config.Role;
-
 import jwt.setting.config.SocialType;
-import jwt.setting.handler.LoginSuccessHandler;
 import jwt.setting.settings.JwtService;
 import lombok.extern.slf4j.Slf4j;
 import net.nurigo.sdk.NurigoApp;
@@ -24,12 +22,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestBody;
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -79,6 +73,14 @@ public class UserService {
         if (userRepository.findByNickname(userDto.getNickname()).isPresent()) {
             throw new UserConflictException("이미 존재하는 닉네임입니다.");
         }
+        SocialType type = null;
+        if (userDto.getSocialType() != null && !userDto.getSocialType().isEmpty()) {
+                type = SocialType.valueOf(userDto.getSocialType());
+        }
+        GoodseulEntity defaultGoodseul = null;
+        if(userDto.getIsGoodseul() == null) {
+            defaultGoodseul = goodseulRepository.findByIdx(0L).orElse(null);
+        }
         UserEntity user = UserEntity.builder()
                 .email(userDto.getEmail())
                 .password(userDto.getPassword())
@@ -87,8 +89,8 @@ public class UserService {
                 .phoneNumber(userDto.getPhoneNumber())
                 .location(userDto.getLocation())
                 .birth(userDto.getBirth())
-                .isGoodseul(null)
-                .socialType(SocialType.valueOf(userDto.getSocialType()))
+                .isGoodseul(defaultGoodseul)
+                .socialType(type)
                 .socialId(userDto.getSocialId())
                 .role(Role.USER)
                 .build(); // 최종적으로 객체를 반환

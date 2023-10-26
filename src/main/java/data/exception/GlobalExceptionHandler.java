@@ -48,15 +48,15 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(DuplicateEmailException.class)
-    public final ResponseEntity<String> handleDuplicateEmailException(DuplicateEmailException duplicateEmailException){
+    public final ResponseEntity<Boolean> handleDuplicateEmailException(DuplicateEmailException duplicateEmailException){
         log.debug("중복된 이메일입니다.",duplicateEmailException);
-        return new ResponseEntity<>("중복된 이메일입니다.", HttpStatus.CONFLICT);
+        return new ResponseEntity<>(true, HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(DuplicateNicknameException.class)
-    public final ResponseEntity<String> handleDuplicateNicknameException(DuplicateNicknameException duplicateNicknameException) {
+    public final ResponseEntity<Boolean> handleDuplicateNicknameException(DuplicateNicknameException duplicateNicknameException) {
         log.debug("중복된 닉네임입니다.", duplicateNicknameException);
-        return new ResponseEntity<>("중복된 닉네임입니다.",HttpStatus.CONFLICT);
+        return new ResponseEntity<>(true,HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(ImageRoadFailedException.class)

@@ -42,7 +42,7 @@ public class UserEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "isGoodseul", referencedColumnName = "idx")
-    private GoodseulEntity isGoodseul = new GoodseulEntity();
+    private GoodseulEntity isGoodseul;
 
     @Enumerated(EnumType.STRING)
     private Role role;
@@ -69,11 +69,6 @@ public class UserEntity {
     public void image () {
         if(userProfile == null)
             this.userProfile = "NoImage";
-    }
-    @PrePersist
-    public void idx () {
-        if(isGoodseul == null)
-            this.isGoodseul = 0;
     }
 
     public void updateRefreshToken(String updateRefreshToken) {

@@ -77,6 +77,10 @@ public class UserService {
         if (userDto.getSocialType() != null && !userDto.getSocialType().isEmpty()) {
                 type = SocialType.valueOf(userDto.getSocialType());
         }
+        GoodseulEntity defaultGoodseul = null;
+        if(userDto.getIsGoodseul() == null) {
+            defaultGoodseul = goodseulRepository.findByIdx(0L).orElse(null);
+        }
         UserEntity user = UserEntity.builder()
                 .email(userDto.getEmail())
                 .password(userDto.getPassword())
@@ -85,7 +89,7 @@ public class UserService {
                 .phoneNumber(userDto.getPhoneNumber())
                 .location(userDto.getLocation())
                 .birth(userDto.getBirth())
-                .isGoodseul(null)
+                .isGoodseul(defaultGoodseul)
                 .socialType(type)
                 .socialId(userDto.getSocialId())
                 .role(Role.USER)

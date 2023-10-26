@@ -88,6 +88,8 @@ public class UserService {
                 .location(userDto.getLocation())
                 .birth(userDto.getBirth())
                 .isGoodseul(null)
+                .socialType(SocialType.valueOf(userDto.getSocialType()))
+                .socialId(userDto.getSocialId())
                 .role(Role.USER)
                 .build(); // 최종적으로 객체를 반환
         user.passwordEncode(passwordEncoder); // 사용자 비밀번호를 암호화하기 위한 Spring Security의 비밀번호 인코딩
@@ -129,6 +131,8 @@ public class UserService {
                 .name(userDto.getName())
                 .phoneNumber(userDto.getPhoneNumber())
                 .location(userDto.getLocation())
+                .socialType(null)
+                .socialId(null)
                 .birth(userDto.getBirth())
                 .role(Role.GOODSEUL)
                 .build(); // 최종적으로 객체를 반환

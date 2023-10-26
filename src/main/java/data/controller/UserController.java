@@ -118,7 +118,7 @@ public class UserController {
     @ApiOperation(value = "구슬님 목적별 조회 API", notes = "지정된 목적을 가진 구슬님 목록을 페이징 처리하여 반환합니다.")
     public ResponseEntity<List<GoodseulSkillDto>> getGoodseulBySkill(
             @ApiParam(value = "페이지 번호 (기본값: 0)", defaultValue = "0") @RequestParam(value = "page", defaultValue = "0") Integer page,
-            @ApiParam(value = "조회할 스킬", required = true) @RequestParam (value = "skill", defaultValue = "축하")String skill) {
+            @ApiParam(value = "조회할 스킬", required = true) @RequestParam (value = "skill", defaultValue = "안녕")String skill) {
 
         return new ResponseEntity<>(userService.skillList(skill, page), HttpStatus.OK);
     }

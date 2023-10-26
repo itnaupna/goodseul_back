@@ -114,12 +114,7 @@ public class BoardService {
     public BoardDto boardDetail(Long idx){
         BoardEntity board = boardRepository.findByIdx(idx)
                 .orElseThrow(BoardNotFoundException::new);
-        BoardDto dto = new BoardDto();
-        dto.setIdx(board.getIdx());
-        dto.setSubject(board.getSubject());
-        dto.setContent(board.getContent());
-        dto.setNickname(board.getNickname());
-        dto.setWriteDate(board.getWriteDate());
+        BoardDto dto = BoardDto.toBoardDto(board);
 
         List<CommentEntity> commentEntity = board.getComments();
         List<CommentResponseDto> commentDtos = commentEntity.stream()
@@ -164,8 +159,7 @@ public class BoardService {
             commentRepository.save(comment);
 
             return dto.getIdx();
-        } catch (RuntimeException e) {
-            throw e;
+
         } catch (Exception e) {
             throw new RuntimeException("댓글 저장 중 오류가 발생했습니다.", e);
         }

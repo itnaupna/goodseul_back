@@ -1,6 +1,7 @@
 package data.dto;
 
 import data.entity.BoardEntity;
+import data.entity.UserEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,17 +25,7 @@ public class BoardDto {
     private Long userId;
     private LocalDate writeDate;
     private List<CommentResponseDto> comments;
-    public BoardDto(BoardEntity boards) {
-        this.idx =boards.getIdx();
-        this.subject = boards.getSubject();
-        this.content = boards.getContent();
-        this.nickname = boards.getNickname();
-        this.category = boards.getCategory();
-        this.tag = boards.getTag();
-        this.userId = boards.getUser().getIdx();
-        this.writeDate = boards.getWriteDate();
-        this.comments = boards.getComments().stream().map(CommentResponseDto::new).collect(Collectors.toList());
-    }
+
 
     public static BoardDto toBoardDto(BoardEntity board){
         return BoardDto.builder()
@@ -45,6 +36,20 @@ public class BoardDto {
                 .category(board.getCategory())
                 .tag(board.getTag())
                 .writeDate(board.getWriteDate())
+                .userId(board.getUser().getIdx())
+                .build();
+    }
+
+    public static BoardDto toBoardDto(BoardEntity board, UserEntity user, String nickname){
+        return BoardDto.builder()
+                .idx(board.getIdx())
+                .subject(board.getSubject())
+                .content(board.getContent())
+                .nickname(nickname)
+                .category(board.getCategory())
+                .tag(board.getTag())
+                .writeDate(board.getWriteDate())
+                .userId(board.getUser().getIdx())
                 .build();
     }
 }

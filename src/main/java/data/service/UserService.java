@@ -73,6 +73,10 @@ public class UserService {
         if (userRepository.findByNickname(userDto.getNickname()).isPresent()) {
             throw new UserConflictException("이미 존재하는 닉네임입니다.");
         }
+        SocialType type = null;
+        if (userDto.getSocialType() != null && !userDto.getSocialType().isEmpty()) {
+                type = SocialType.valueOf(userDto.getSocialType());
+        }
         UserEntity user = UserEntity.builder()
                 .email(userDto.getEmail())
                 .password(userDto.getPassword())
@@ -82,7 +86,7 @@ public class UserService {
                 .location(userDto.getLocation())
                 .birth(userDto.getBirth())
                 .isGoodseul(null)
-                .socialType(SocialType.valueOf(userDto.getSocialType()))
+                .socialType(type)
                 .socialId(userDto.getSocialId())
                 .role(Role.USER)
                 .build(); // 최종적으로 객체를 반환

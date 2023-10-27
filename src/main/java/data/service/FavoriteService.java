@@ -52,7 +52,6 @@ public class FavoriteService {
         UserEntity user = userRepository.findById(idx).orElseThrow(UserNotFoundException::new);
         GoodseulEntity goodseul = goodseulRepository.findById(dto.getG_idx()).orElseThrow(GoodseulNotFoundException::new);
 
-
 //        if(favoriteRepository.existsByUserEntity_idxAndGoodseulEntity_idx(dto.getU_idx(), dto.getG_idx())) {
 //            return new ResponseEntity<>("이미 찜한 구슬님 입니다", HttpStatus.BAD_REQUEST);
 //        }else {

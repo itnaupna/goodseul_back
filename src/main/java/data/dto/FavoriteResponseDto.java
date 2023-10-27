@@ -19,6 +19,7 @@ public class FavoriteResponseDto {
     private String profile;
     private String g_name;
     private String u_name;
+    private boolean favoriteStatus;
 
     public FavoriteResponseDto(FavoriteEntity favorite, Integer favoriteCount){
         this.f_idx = favorite.getFIdx();

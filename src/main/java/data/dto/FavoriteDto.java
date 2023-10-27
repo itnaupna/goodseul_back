@@ -20,6 +20,7 @@ public class FavoriteDto {
     private Long u_idx;
     @ApiModelProperty(value = "유저 idx", required = false)
     private Long g_idx;
+    private boolean favoriteStatus;
     public static FavoriteDto toFavoriteDto(FavoriteEntity entity) {
         return FavoriteDto.builder()
                 .f_idx(entity.getFIdx())

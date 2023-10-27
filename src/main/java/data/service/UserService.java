@@ -74,13 +74,13 @@ public class UserService {
             throw new UserConflictException("이미 존재하는 닉네임입니다.");
         }
         SocialType type = null;
-        if (userDto.getSocialType() != null && !userDto.getSocialType().isEmpty()) {
-                type = SocialType.valueOf(userDto.getSocialType());
+        if (userDto.getSocialType() != null) {
+                type = userDto.getSocialType();
         }
-        GoodseulEntity defaultGoodseul = null;
         if(userDto.getIsGoodseul() == null) {
-            defaultGoodseul = goodseulRepository.findByIdx(0L).orElse(null);
+            userDto.setIsGoodseul(0L);
         }
+        GoodseulEntity defaultGoodseul = goodseulRepository.findByIdx(userDto.getIsGoodseul()).orElse(null);
         UserEntity user = UserEntity.builder()
                 .email(userDto.getEmail())
                 .password(userDto.getPassword())

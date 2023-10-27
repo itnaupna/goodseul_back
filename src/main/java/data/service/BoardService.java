@@ -1,6 +1,7 @@
 package data.service;
 
 import data.dto.BoardDto;
+import data.dto.BoardListDto;
 import data.dto.CommentRequestDto;
 import data.dto.CommentResponseDto;
 import data.entity.BoardEntity;
@@ -24,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -131,10 +133,19 @@ public class BoardService {
     }
 
     //게시판 검색 + 리스트 + 페이징
-    public List<BoardDto> searchByCategoryAndKeyword(String category, String keyword, int page) {
+    public List<BoardListDto> searchByCategoryAndKeyword(String category, String keyword, int page) {
         PageRequest pageable = PageRequest.of(page, 4, Sort.by(Sort.Direction.ASC, "idx"));
         List<BoardEntity> boards = boardRepository.findByCategoryAndSubjectContaining(category, keyword, pageable).getContent();
-        return boards.stream().map(BoardDto::toBoardDto).collect(Collectors.toList());
+        List<BoardListDto> resultList = new ArrayList<>();
+
+        for(BoardEntity boardEntity : boards){
+            BoardDto boardDto = BoardDto.toBoardDto(boardEntity);
+            BoardListDto boardListDto = new BoardListDto();
+            boardListDto.setBoardDto(boardDto);
+            boardListDto.setUserProfile(userRepository.findByIdx(boardDto.getUserId()).orElseThrow(GoodseulNotFoundException::new).getUserProfile());
+            resultList.add(boardListDto);
+        }
+        return resultList;
     }
 
     //댓글 생성

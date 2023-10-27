@@ -94,6 +94,7 @@ public class ReviewService {
     public ReviewResponseDto getOneReview(int r_idx, HttpServletRequest request) {
         long idx;
         boolean likeStatus;
+      
         try {
             idx = jwtService.extractIdxFromRequest(request);
             likeStatus = reviewLikeRepository.countByReviewEntity_rIdxAndUserEntity_idx(r_idx, idx) > 0;

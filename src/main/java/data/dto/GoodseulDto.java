@@ -19,12 +19,11 @@ public class GoodseulDto {
     private String goodseulProfile;
     private String goodseulInfo;
 
-    public GoodseulDto(Long idx, String goodseulName, String skill, String career, String goodseulProfile, String goodseulInfo) {
+    public GoodseulDto(Long idx,String goodseulName, String skill, String career, String goodseulInfo) {
         this.idx = idx;
         this.goodseulName = goodseulName;
         this.skill = skill;
         this.career =career;
-        this.goodseulProfile = goodseulProfile;
         this.goodseulInfo = goodseulInfo;
     }
   

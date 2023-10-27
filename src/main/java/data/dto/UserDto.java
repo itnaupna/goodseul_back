@@ -2,6 +2,7 @@ package data.dto;
 
 import data.entity.GoodseulEntity;
 import data.entity.UserEntity;
+import jwt.setting.config.SocialType;
 import lombok.*;
 
 @AllArgsConstructor
@@ -19,7 +20,10 @@ public class UserDto {
     private String location;
     private String birth;
     private String userProfile;
-    private long isGoodseul;
+    private Long isGoodseul;
+    private String role;
+    private String socialId;
+    private SocialType socialType;
 
     public static UserDto toUserDto (UserEntity entity) {
 

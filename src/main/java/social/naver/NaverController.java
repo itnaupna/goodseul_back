@@ -138,17 +138,6 @@ public class NaverController {
                 return new ResponseEntity<>("이미 일반회원으로 가입된 이메일입니다.", HttpStatus.IM_USED);
             }
         }else {
-            //회원가입
-            UserEntity user = UserEntity.builder()
-                    .email(naverData.getEmail())
-                    .name(naverData.getName())
-                    .phoneNumber(naverData.getMobile().replace("-",""))
-                    .socialType(SocialType.NAVER)
-                    .socialId(naverData.getId())
-                    .role(Role.USER)
-                    .isGoodseul(null)
-                    .build();
-            userRepository.save(user);
             return new ResponseEntity<>(naverData, HttpStatus.ACCEPTED);
         }
 

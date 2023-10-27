@@ -125,17 +125,6 @@ public class KakaoController {
                 return new ResponseEntity<>("이미 네이버로 가입된 이메일 입니다.", HttpStatus.IM_USED);
             }
             }else{
-                //회원가입
-            UserEntity user = UserEntity.builder()
-                    .email(kakaoData.getEmail())
-                    .nickname(kakaoData.getNickname())
-                    .socialType(SocialType.KAKAO)
-                    .socialId(kakaoData.getId())
-                    .role(Role.USER)
-                    .isGoodseul(null)
-                    .build();
-            userRepository.save(user);
-                log.info("카카오 계정 없음");
                 return new ResponseEntity<>(kakaoData, HttpStatus.ACCEPTED);
             }
             return new ResponseEntity<>(accessToken, HttpStatus.ACCEPTED);

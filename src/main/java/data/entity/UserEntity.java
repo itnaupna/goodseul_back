@@ -65,6 +65,12 @@ public class UserEntity {
         this.password = passwordEncoder.encode(this.password); 
     }
 
+    @PrePersist
+    public void image () {
+        if(userProfile == null)
+            this.userProfile = "NoImage";
+    }
+
     public void updateRefreshToken(String updateRefreshToken) {
         this.refreshToken = updateRefreshToken;
     }

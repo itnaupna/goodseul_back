@@ -3,6 +3,7 @@ package data.exception;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -47,15 +48,15 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(DuplicateEmailException.class)
-    public final ResponseEntity<String> handleDuplicateEmailException(DuplicateEmailException duplicateEmailException){
+    public final ResponseEntity<Boolean> handleDuplicateEmailException(DuplicateEmailException duplicateEmailException){
         log.debug("중복된 이메일입니다.",duplicateEmailException);
-        return new ResponseEntity<>("중복된 이메일입니다.", HttpStatus.CONFLICT);
+        return new ResponseEntity<>(true, HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(DuplicateNicknameException.class)
-    public final ResponseEntity<String> handleDuplicateNicknameException(DuplicateNicknameException duplicateNicknameException) {
+    public final ResponseEntity<Boolean> handleDuplicateNicknameException(DuplicateNicknameException duplicateNicknameException) {
         log.debug("중복된 닉네임입니다.", duplicateNicknameException);
-        return new ResponseEntity<>("중복된 닉네임입니다.",HttpStatus.CONFLICT);
+        return new ResponseEntity<>(true,HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(ImageRoadFailedException.class)
@@ -74,6 +75,26 @@ public class GlobalExceptionHandler {
     public final ResponseEntity<String> handleIllegalMimeTypeException(IllegalMimeTypeException illegalMimeTypeException) {
         log.debug("올바르지 않은 확장자입니다.", illegalMimeTypeException);
         return new ResponseEntity<>("올바르지 않은 확장자입니다.",HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+    }
+    @ExceptionHandler(BoardNotFoundException.class)
+    public final ResponseEntity<String> BoardNotFoundException(BoardNotFoundException boardNotFoundException){
+        log.debug("게시글을 찾을 수 없습니다",boardNotFoundException);
+        return new ResponseEntity<>("게시글을 찾을 수 없습니다",HttpStatus.NOT_FOUND);
+    }
+    @ExceptionHandler(CommnetContentNotFoundException.class)
+    public final ResponseEntity<String> CommentContentNotFoundException(CommnetContentNotFoundException commnetContentNotFoundException) {
+        log.debug("댓글의 내용은 빈값일 수 없습니다.");
+        return new ResponseEntity<>("댓글의 내용은 빈값일 수 없습니다.",HttpStatus.BAD_REQUEST);
+    }
+    @ExceptionHandler(CommentNotFoundException.class)
+    public final ResponseEntity<String> HandleCommentNotFoundException(CommentNotFoundException commentNotFoundException){
+        log.debug("댓글을 찾을 수 없습니다");
+        return new ResponseEntity<>("댓글을 찾을 수 없습니다.",HttpStatus.NOT_FOUND);
+    }
+    @ExceptionHandler(SubjectContentNotFoundException.class)
+    public final ResponseEntity<String> HandleSubjectContentNotFoundException(SubjectContentNotFoundException subjectContentNotFoundException){
+        log.debug("제목과 내용을 적어주세요");
+        return new ResponseEntity<>("제목과 내용을 적어주세요",HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(AlreadyProcessException.class)

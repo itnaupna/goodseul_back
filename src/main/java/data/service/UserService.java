@@ -1,20 +1,14 @@
 package data.service;
 
-import data.dto.GoodseulDto;
-import data.dto.GoodseulInfoDto;
-import data.dto.MyPageResponseDto;
-import data.dto.UserDto;
+import data.dto.*;
 import data.entity.ChatRoomEntity;
 import data.entity.GoodseulEntity;
 import data.entity.UserEntity;
-import data.exception.GoodseulNotFoundException;
-import data.exception.UserNotFoundException;
+import data.exception.*;
 import data.repository.*;
 import data.service.file.StorageService;
 import jwt.setting.config.Role;
-
 import jwt.setting.config.SocialType;
-import jwt.setting.handler.LoginSuccessHandler;
 import jwt.setting.settings.JwtService;
 import lombok.extern.slf4j.Slf4j;
 import net.nurigo.sdk.NurigoApp;
@@ -28,10 +22,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -74,13 +66,21 @@ public class UserService {
     }
 
     //일반 회원 회원가입
-    public void signUp(UserDto userDto) throws Exception {
+    public void signUp(UserDto userDto)  {
         if (userRepository.findByEmail(userDto.getEmail()).isPresent()) {
-            throw new Exception("이미 존재하는 이메일입니다");
+            throw new UserConflictException("이미 존재하는 이메일입니다");
         }
         if (userRepository.findByNickname(userDto.getNickname()).isPresent()) {
-            throw new Exception("이미 존재하는 닉네임입니다.");
+            throw new UserConflictException("이미 존재하는 닉네임입니다.");
         }
+        SocialType type = null;
+        if (userDto.getSocialType() != null) {
+                type = userDto.getSocialType();
+        }
+        if(userDto.getIsGoodseul() == null) {
+            userDto.setIsGoodseul(0L);
+        }
+        GoodseulEntity defaultGoodseul = goodseulRepository.findByIdx(userDto.getIsGoodseul()).orElse(null);
         UserEntity user = UserEntity.builder()
                 .email(userDto.getEmail())
                 .password(userDto.getPassword())
@@ -89,7 +89,9 @@ public class UserService {
                 .phoneNumber(userDto.getPhoneNumber())
                 .location(userDto.getLocation())
                 .birth(userDto.getBirth())
-                .isGoodseul(null)
+                .isGoodseul(defaultGoodseul)
+                .socialType(type)
+                .socialId(userDto.getSocialId())
                 .role(Role.USER)
                 .build(); // 최종적으로 객체를 반환
         user.passwordEncode(passwordEncoder); // 사용자 비밀번호를 암호화하기 위한 Spring Security의 비밀번호 인코딩
@@ -97,7 +99,7 @@ public class UserService {
     }
 
     //구슬님 회원가입
-    public void goodseulSignup(GoodseulDto goodseulDto, UserDto userDto, List<MultipartFile> uploads) throws Exception{
+    public void goodseulSignup(GoodseulDto goodseulDto, UserDto userDto, List<MultipartFile> uploads) throws IOException {
 
         StringBuilder sb = new StringBuilder();
 
@@ -110,10 +112,10 @@ public class UserService {
         log.info(userDto.getNickname());
 
         if (userRepository.existsByEmail(userDto.getEmail())) {
-            throw new Exception("이미 존재하는 이메일입니다");
+            throw new DuplicateEmailException();
         }
         if (userRepository.existsByNickname(userDto.getNickname())) {
-            throw new Exception("이미 존재하는 닉네임입니다.");
+            throw new DuplicateNicknameException();
         }
 
         GoodseulEntity goodseuls = GoodseulEntity.builder()
@@ -131,6 +133,8 @@ public class UserService {
                 .name(userDto.getName())
                 .phoneNumber(userDto.getPhoneNumber())
                 .location(userDto.getLocation())
+                .socialType(null)
+                .socialId(null)
                 .birth(userDto.getBirth())
                 .role(Role.GOODSEUL)
                 .build(); // 최종적으로 객체를 반환
@@ -155,24 +159,39 @@ public class UserService {
     }
 
     //구슬님 지역별 페이징
-    public Page<GoodseulDto> goodseulPaging(String location,int page){
+    public List<GoodseulListDto> goodseulPaging(String location, int page){
         PageRequest pageable = PageRequest.of(page, 5,Sort.by(Sort.Direction.ASC,"idx"));
-        return userRepository.findGoodseulIdxByLocation(location, pageable);
+        List<GoodseulDto> goodList = userRepository.findGoodseulIdxByLocation(location, pageable).getContent();
+
+        List<GoodseulListDto> resultList = new ArrayList<>();
+
+        for(GoodseulDto goodseulDto : goodList){
+            GoodseulListDto goodseulListDto = new GoodseulListDto();
+
+            goodseulListDto.setGoodseulDto(goodseulDto);
+            goodseulListDto.setUserProfile(userRepository.findByIsGoodseul_Idx(goodseulDto.getIdx()).orElseThrow(GoodseulNotFoundException::new).getUserProfile());
+            goodseulListDto.setAvgStar(reviewRepository.findAverageStarByGIdx(goodseulDto.getIdx()));
+
+            log.info(goodseulListDto.toString());
+            resultList.add(goodseulListDto);
+        }
+
+        return  resultList;
     }
 
     //목적별 리스트
-    public Page<GoodseulDto> skillList(String skill, int page){
+    public List<GoodseulSkillDto> skillList(String skill, int page){
         PageRequest pageable = PageRequest.of(page, 5, Sort.by(Sort.Direction.ASC,"idx"));
-        return goodseulRepository.findGoodseulIdxBySkill(skill, pageable);
-    }
+        List<GoodseulDto> goodList=goodseulRepository.findGoodseulIdxBySkill(skill, pageable).getContent();
+        List<GoodseulSkillDto> resultList = new ArrayList<>();
 
-    //구슬님 리스트
-    public List<GoodseulDto> goodseulList(){
-        List<GoodseulDto> list = new ArrayList<>();
-        for(GoodseulEntity entity : goodseulRepository.findAll()){
-            list.add(GoodseulDto.toGoodseulDto(entity));
+        for(GoodseulDto goodseulDto : goodList){
+            GoodseulSkillDto goodseulSkillDto = new GoodseulSkillDto();
+            goodseulSkillDto.setGoodseulDto(goodseulDto);
+            goodseulSkillDto.setUserProfile(userRepository.findByIsGoodseul_Idx(goodseulDto.getIdx()).orElseThrow(GoodseulNotFoundException::new).getUserProfile());
+            resultList.add(goodseulSkillDto);
         }
-        return list;
+        return  resultList;
     }
     //닉네임,이메일,전화번호 유효성 검사
     public String allCheck(String email, String birth, String name) {
@@ -180,18 +199,22 @@ public class UserService {
         if (user.isPresent()) {
             return user.get().getPhoneNumber();
         }
-        return "없습니다";
+        throw new UserNotFoundException();
     }
 
     //비밀번호 변경
     public String pwdUpdate(String email, String password) {
-        Optional<UserEntity> userId = userRepository.findByEmail(email);
-        if (userId.isPresent()) {
-            userId.get().setPassword(passwordEncoder.encode(password));
-            userRepository.save(userId.get());
+        Optional<UserEntity> userIdOptional = userRepository.findByEmail(email);
+        if (userIdOptional.isPresent()) {
+            UserEntity user = userIdOptional.get();
+            if(passwordEncoder.matches(password, user.getPassword())){
+                throw new UserConflictException("비밀번호가 이전과 동일합니다");
+            }
+            user.setPassword(passwordEncoder.encode(password));
+            userRepository.save(user);
             return "완료";
         } else {
-            return "해당 회원이 없습니다.";
+            throw new UserNotFoundException();
         }
     }
 
@@ -201,7 +224,7 @@ public class UserService {
     }
 
     //닉네임 유효성 검사
-    public boolean nicknameCheck(String nickname){
+    public boolean nicknameCheck(String nickname) {
        return userRepository.existsByNickname(nickname);
     }
     // 핸드폰 번호 유효성 검사
@@ -211,11 +234,9 @@ public class UserService {
     
     //문자 인증번호 보내기
     public String sendSms(String phoneNumber) {
-        Optional<UserEntity> phoneNumberCheck = userRepository.findByPhoneNumber(phoneNumber);
-        if(!phoneNumberCheck.isPresent()){
-            return "없습니다";
-        }
-        phoneNumberCheck.get().setPhoneNumber(phoneNumber);
+        UserEntity user = userRepository.findByPhoneNumber(phoneNumber)
+                .orElseThrow(UserNotFoundException::new);
+        user.setPhoneNumber(phoneNumber);
         String authnum = generateRandomNumber(4);
         Message message = new Message();
         message.setFrom("01076331961");
@@ -266,14 +287,13 @@ public class UserService {
 
     //회원 업데이트
     public void updateUser(HttpServletRequest request, UserDto userDto){
-        Long userIdx = jwtService.extractIdx(jwtService.extractAccessToken(request).orElseThrow(() -> new RuntimeException("Access Token이 존재하지 않습니다.")))
-                .orElseThrow(() -> new RuntimeException("사용자 인덱스를 찾을 수 없습니다."));
+        Long userIdx = jwtService.extractIdxFromRequest(request);
         UserEntity user = userRepository.findByIdx(userIdx)
-                .orElseThrow(() -> new RuntimeException("사용자를 데이터베이스에서 찾을 수 없습니다."));
+                .orElseThrow(UserNotFoundException::new);
 
         if(!user.getIdx().equals(userIdx)){
             log.error("불일치");
-            throw new RuntimeException("수정 권한이 없습니다");
+
         }
         user.setBirth(userDto.getBirth());
         user.setLocation(userDto.getLocation());
@@ -285,10 +305,9 @@ public class UserService {
 
     //구슬 업데이트
     public void updateGoodseul(HttpServletRequest request, GoodseulDto goodseulDto){
-        Long userIdx = jwtService.extractIdx(jwtService.extractAccessToken(request).orElseThrow(() -> new RuntimeException("Access Token이 존재하지 않습니다.")))
-                .orElseThrow(() -> new RuntimeException("사용자 인덱스를 찾을 수 없습니다."));
+        Long userIdx = jwtService.extractIdxFromRequest(request);
         UserEntity user = userRepository.findByIdx(userIdx)
-                .orElseThrow(() -> new RuntimeException("사용자를 데이터베이스에서 찾을 수 없습니다."));
+                .orElseThrow(UserNotFoundException::new);
         GoodseulEntity goodseul = goodseulRepository.findByIdx(user.getIsGoodseul().getIdx()).get();
         goodseul.setCareer(goodseulDto.getCareer());
         goodseul.setGoodseulName(goodseulDto.getGoodseulName());
@@ -305,23 +324,26 @@ public class UserService {
     }
 
     // 회원 탈퇴
-    public boolean signOut (HttpServletRequest request) {
-        long idx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
-        log.info(idx + "= idx");
+    public boolean signOut(HttpServletRequest request) {
+        Long idx = jwtService.extractIdxFromRequest(request);
+        log.info(idx + " = idx");
+
         try {
             Optional<UserEntity> entity = userRepository.findById(idx);
             if(entity.isPresent()) {
-                singOut(entity.get());
-
+                signOut(entity.get());
                 return true;
+            } else {
+                throw new UserNotFoundException();
             }
         } catch (Exception e) {
-            log.info("탈퇴 실패" + e.getMessage());
+            log.error("탈퇴 실패", e);
             return false;
         }
-        return false;
+
     }
-    private void singOut(UserEntity user) {
+
+    private void signOut(UserEntity user) {
         user.setEmail("");
         user.setName(user.getName() + "(탈퇴)");
         user.setPassword("");
@@ -332,13 +354,15 @@ public class UserService {
         user.setSocialId("");
 
         if(user.getIsGoodseul() != null) {
-            GoodseulEntity goodseul = goodseulRepository.findByIdx(user.getIsGoodseul().getIdx()).get();
-            goodseul.setCareer("");
-            goodseul.setGoodseulName(goodseul.getGoodseulName() + "(탈퇴)");
-            goodseul.setGoodseulProfile("");
-            goodseul.setIsPremium(null);
-            goodseul.setPremiumDate(null);
-            goodseul.setSkill("");
+            goodseulRepository.findByIdx(user.getIsGoodseul().getIdx())
+                    .ifPresent(goodseul -> {
+                        goodseul.setCareer("");
+                        goodseul.setGoodseulName(goodseul.getGoodseulName() + "(탈퇴)");
+                        goodseul.setGoodseulProfile("");
+                        goodseul.setIsPremium(null);
+                        goodseul.setPremiumDate(null);
+                        goodseul.setSkill("");
+                    });
         }
 
         userRepository.save(user);
@@ -346,9 +370,13 @@ public class UserService {
 
     //사용자 프로필 사진 업데이트
     public String updatePhoto(MultipartFile upload, HttpServletRequest request) throws IOException {
+        if (upload.isEmpty()) {
+            throw new ImageRoadFailedException();
+        }
         String fileName = storageService.saveFile(upload, USER_PROFILE_PATH);
-        Long idx = jwtService.extractIdx(jwtService.extractAccessToken(request).get()).get();
-        UserEntity user = userRepository.findByIdx(idx).get();
+        Long userIdx = jwtService.extractIdxFromRequest(request);
+        UserEntity user = userRepository.findByIdx(userIdx)
+                .orElseThrow(UserNotFoundException::new);
         user.setUserProfile(fileName);
         userRepository.save(user);
         return fileName;

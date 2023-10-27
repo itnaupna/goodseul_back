@@ -127,9 +127,9 @@ public class UserController {
     @GetMapping("/lv1/gs")
     @ApiOperation(value = "구슬 단건 조회 API", notes = "지정된 ID를 가진 구슬님의 정보를 조회합니다.")
     public ResponseEntity<GoodseulInfoDto> getGoodseulInfo(
-            @ApiParam(value = "조회할 구슬님의 ID", required = true) @RequestParam long goodseulIdx) {
+            @ApiParam(value = "조회할 구슬님의 ID", required = true) @RequestParam long goodseulIdx, HttpServletRequest request) {
 
-        return new ResponseEntity<GoodseulInfoDto>(userService.getGoodseulInfo(goodseulIdx), HttpStatus.OK);
+        return new ResponseEntity<GoodseulInfoDto>(userService.getGoodseulInfo(goodseulIdx, request), HttpStatus.OK);
     }
 
     @GetMapping("/lv1/user")

@@ -258,12 +258,26 @@ public class UserService {
         return sb.toString();
     }
 
-    public GoodseulInfoDto getGoodseulInfo(long idx) {
-       GoodseulInfoDto goodseulInfoDto = new GoodseulInfoDto();
-       GoodseulEntity goodseulEntity = goodseulRepository.findByIdx(idx).orElseThrow(GoodseulNotFoundException::new);
+    public GoodseulInfoDto getGoodseulInfo(long idx, HttpServletRequest request) {
+        long u_idx;
+        boolean favoriteStatus;
+
+        try {
+            u_idx = jwtService.extractIdxFromRequest(request);
+            favoriteStatus = favoriteRepository.countByUserEntity_idxAndGoodseulEntity_idx(u_idx, idx) > 0;
+
+        } catch (Exception e) {
+            u_idx = 0;
+            favoriteStatus = false;
+        }
+
+        GoodseulInfoDto goodseulInfoDto = new GoodseulInfoDto();
+        GoodseulEntity goodseulEntity = goodseulRepository.findByIdx(idx).orElseThrow(GoodseulNotFoundException::new);
         goodseulInfoDto.setGoodseulDto(GoodseulDto.toGoodseulDto(goodseulEntity));
         goodseulInfoDto.setUserDto(UserDto.toUserDto(userRepository.findByIsGoodseul_Idx(goodseulEntity.getIdx()).orElseThrow(UserNotFoundException::new)));
-       return goodseulInfoDto;
+        goodseulInfoDto.setFavoriteStatus(favoriteStatus);
+        return goodseulInfoDto;
+
     }
 
 //    //회원 탈퇴

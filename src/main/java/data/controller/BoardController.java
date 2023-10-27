@@ -1,6 +1,7 @@
 package data.controller;
 
 import data.dto.BoardDto;
+import data.dto.BoardListDto;
 import data.dto.CommentRequestDto;
 import data.exception.BoardNotFoundException;
 import data.service.BoardService;
@@ -99,7 +100,7 @@ public class BoardController {
             @ApiResponse(code = 404, message = "조건에 맞는 게시글이 존재하지 않습니다"),
             @ApiResponse(code = 500, message = "게시글 조회 중 오류가 발생했습니다.")
     })
-    public ResponseEntity<List<BoardDto>> searchBoard(
+    public ResponseEntity<List<BoardListDto>> searchBoard(
             @ApiParam(value = "조회할 게시판의 카테고리", required = true) @RequestParam("category") String category,
             @ApiParam(value = "검색할 키워드", required = false) @RequestParam(value = "keyword", defaultValue = "") String keyword,
             @ApiParam(value = "페이징 번호", required = false) @RequestParam(value = "page", defaultValue = "0") Integer page) {

@@ -180,9 +180,7 @@ public class UserController {
     public ResponseEntity<Boolean> checkEmail(
             @ApiParam(value = "확인할 이메일 정보가 포함된 Json", required = true) @RequestBody JsonNode jsonNode) {
 
-        userService.emailCheck(jsonNode.get("email").asText());
-
-        return new ResponseEntity<>(false, HttpStatus.OK);
+        return new ResponseEntity<>(userService.emailCheck(jsonNode.get("email").asText()), HttpStatus.OK);
     }
 
 
@@ -192,9 +190,7 @@ public class UserController {
     public ResponseEntity<Boolean> checknickname(
             @ApiParam(value = "확인할 닉네임 정보가 포함된 Json", required = true) @RequestBody JsonNode jsonNode) {
 
-        userService.nicknameCheck(jsonNode.get("nickname").asText());
-
-        return new ResponseEntity<>(false, HttpStatus.OK);
+        return new ResponseEntity<>( userService.nicknameCheck(jsonNode.get("nickname").asText()), HttpStatus.OK);
     }
 
 

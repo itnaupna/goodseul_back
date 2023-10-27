@@ -74,13 +74,13 @@ public class UserService {
             throw new UserConflictException("이미 존재하는 닉네임입니다.");
         }
         SocialType type = null;
-        if (userDto.getSocialType() != null && !userDto.getSocialType().isEmpty()) {
-                type = SocialType.valueOf(userDto.getSocialType());
+        if (userDto.getSocialType() != null) {
+                type = userDto.getSocialType();
         }
-        GoodseulEntity defaultGoodseul = null;
         if(userDto.getIsGoodseul() == null) {
-            defaultGoodseul = goodseulRepository.findByIdx(0L).orElse(null);
+            userDto.setIsGoodseul(0L);
         }
+        GoodseulEntity defaultGoodseul = goodseulRepository.findByIdx(userDto.getIsGoodseul()).orElse(null);
         UserEntity user = UserEntity.builder()
                 .email(userDto.getEmail())
                 .password(userDto.getPassword())
@@ -219,17 +219,13 @@ public class UserService {
     }
 
     //이메일 유효성 검사
-    public void emailCheck(String email) {
-        if (userRepository.existsByEmail(email)) {
-            throw new DuplicateEmailException();
-        }
+    public boolean emailCheck(String email) {
+        return userRepository.existsByEmail(email);
     }
 
     //닉네임 유효성 검사
-    public void nicknameCheck(String nickname) {
-        if (userRepository.existsByNickname(nickname)) {
-            throw new DuplicateNicknameException();
-        }
+    public boolean nicknameCheck(String nickname) {
+       return userRepository.existsByNickname(nickname);
     }
     // 핸드폰 번호 유효성 검사
     public boolean phoneCheck(String phoneNumber) {

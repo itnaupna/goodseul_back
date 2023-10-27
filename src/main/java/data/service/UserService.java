@@ -219,17 +219,13 @@ public class UserService {
     }
 
     //이메일 유효성 검사
-    public void emailCheck(String email) {
-        if (userRepository.existsByEmail(email)) {
-            throw new DuplicateEmailException();
-        }
+    public boolean emailCheck(String email) {
+        return userRepository.existsByEmail(email);
     }
 
     //닉네임 유효성 검사
-    public void nicknameCheck(String nickname) {
-        if (userRepository.existsByNickname(nickname)) {
-            throw new DuplicateNicknameException();
-        }
+    public boolean nicknameCheck(String nickname) {
+       return userRepository.existsByNickname(nickname);
     }
     // 핸드폰 번호 유효성 검사
     public boolean phoneCheck(String phoneNumber) {

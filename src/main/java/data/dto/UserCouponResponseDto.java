@@ -51,7 +51,7 @@ public class UserCouponResponseDto {
         this.end_date = coupon.getEndDate();
         this.cp_description = coupon.getCpDescription();
         this.price = coupon.getPrice();
-        this.image = coupon.getBuyable();
+        this.image = coupon.getImage();
 
     }
 

@@ -36,6 +36,7 @@ public class UserDto {
                 .phoneNumber(entity.getPhoneNumber())
                 .location(entity.getLocation())
                 .birth(entity.getBirth())
+                .userProfile(entity.getUserProfile())
                 .isGoodseul(entity.getIsGoodseul().getIdx())
                 .build();
     }

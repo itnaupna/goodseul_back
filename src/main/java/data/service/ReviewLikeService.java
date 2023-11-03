@@ -43,8 +43,6 @@ public class ReviewLikeService {
         ReviewEntity review = reviewRepository.findById(dto.getR_idx()).orElseThrow(()-> new EntityNotFoundException("해당 리뷰를 찾을 수 없습니다"));
         UserEntity user = userRepository.findById(dto.getU_idx()).orElseThrow((UserNotFoundException::new));
 
-        log.info(review.toString() + user.toString());
-
         if (reviewLikeRepository.existsByReviewEntity_rIdxAndUserEntity_idx(dto.getR_idx(), dto.getU_idx())) {
             throw new AlreadyProcessException();
         } else {
